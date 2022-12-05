@@ -4,6 +4,8 @@ import {modelView, loadMatrix, multRotationX, multRotationY, multRotationZ, mult
 
 import * as CUBE from '../../libs/objects/cube.js';
 import * as CYLINDER from '../../libs/objects/cylinder.js'
+import { perspective } from "../libs/MV.js";
+import { GUI } from "../libs/dat.gui.module.js";
 
 
 
@@ -13,6 +15,49 @@ function setup(shaders)
     let canvas = document.getElementById("gl-canvas");
     let aspect = canvas.width / canvas.height;
 
+    /**
+     * Graphics User Interface
+     */
+    const gui = new GUI();
+
+    /**
+     * Options - GUI
+     */
+    let folderOptions = gui.addFolder("options");
+    let options = {backfaceCulling: true, zBuffer: true};
+    folderOptions.add(options, "backfaceCulling").name("backface culling");
+    folderOptions.add(options, "zBuffer").name("depth test");
+
+    /**
+     * Camera - GUI
+     */
+    let folderCamera = gui.addFolder("camera");
+    let camera = {fovy: 45, near: 0.1, far: 40, eye:{x: 0, y:0, z:1}, at: {x:0, y:0, z:0}, up: {x:0, y:1, z:0}};
+    folderCamera.add(camera, "fovy", 0, 100, 1);   // PODE SE ALTERAR OS VALORES
+    folderCamera.add(camera, "near", 0.1, 1, 0.1); // PODE SE ALTERAR OS VALORES
+    folderCamera.add(camera, "far", 20, 40, 1);    // PODE SE ALTERAR OS VALORES
+
+    let eyeFolder = folderCamera.addFolder("eye");
+    eyeFolder.add(camera.eye, "x", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+    eyeFolder.add(camera.eye, "y", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+    eyeFolder.add(camera.eye, "z", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+
+    let atFolder = folderCamera.addFolder("at");
+    atFolder.add(camera.at, "x", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+    atFolder.add(camera.at, "y", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+    atFolder.add(camera.at, "z", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+
+    let upFolder = folderCamera.addFolder("up");
+    upFolder.add(camera.up, "x", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+    upFolder.add(camera.up, "y", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+    upFolder.add(camera.up, "z", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+
+    //FALTA LIGHTS E MATERIAL
+
+    /**
+     * 
+     */
+
     /** @type WebGL2RenderingContext */
     let gl = setupWebGL(canvas);
 
@@ -21,9 +66,8 @@ function setup(shaders)
 
     let program = buildProgramFromSources(gl, shaders["shader.vert"], shaders["shader.frag"]);
 
-    let mProjection = ortho(-1*aspect,aspect, -1, 1,0.01,3);
-    let mView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);
-
+    let mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
+    let mView = lookAt([0, 0, 1], [0, 0, 0], [0, 1, 0]);
     let zoom = 1.0;
 
     /** Model parameters */
@@ -39,18 +83,18 @@ function setup(shaders)
         switch(event.key) {
             case '1':
                 // Front view
-                mView = lookAt([0,0.6,1], [0,0.6,0], [0,1,0]);
+                mView = lookAt([0,0,1], [0,0,0], [0,1,0]);
                 break;
             case '2':
                 // Top view
-                mView = lookAt([0,1.6,0],  [0,0.6,0], [0,0,-1]);
+                mView = lookAt([0,1,0],  [0,0,0], [0,0,-1]);
                 break;
             case '3':
                 // Right view
-                mView = lookAt([1, 0.6, 0.], [0, 0.6, 0], [0, 1, 0]);
+                mView = lookAt([1, 0, 0], [0, 0, 0], [0, 1, 0]);
                 break;
             case '4':
-                mView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);
+                mView = lookAt([2, 1, 1], [0, 0, 0], [0, 1, 0]);
                 break;
             case '9':
                 mode = gl.LINES; 
@@ -91,9 +135,10 @@ function setup(shaders)
         }
     }
 
-    gl.clearColor(0.3, 0.3, 0.3, 1.0);
-    gl.enable(gl.DEPTH_TEST);   // Enables Z-buffer depth test
-
+    gl.clearColor(0.3, 0.3, 0.3, 1.0); // MUDAR ISTO PARA PRETO MAIS A FRENTE
+    //gl.enable(gl.DEPTH_TEST);   // Enables Z-buffer depth test
+    //gl.enable(gl.CULL_FACE);      
+    //gl.cullFace(gl.BACK);   //initial value of cullFace is GL_BACK
     CUBE.init(gl);
     CYLINDER.init(gl);
 
@@ -108,7 +153,7 @@ function setup(shaders)
         aspect = canvas.width / canvas.height;
 
         gl.viewport(0,0,canvas.width, canvas.height);
-        mProjection = ortho(-aspect*zoom,aspect*zoom, -zoom, zoom,0.01,3);
+        mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
     }
 
     function uploadProjection()
@@ -220,17 +265,46 @@ function setup(shaders)
         gl.useProgram(program);
         
         // Send the mProjection matrix to the GLSL program
-        mProjection = ortho(-aspect*zoom,aspect*zoom, -zoom, zoom,0.01,3);
-        uploadProjection(mProjection);
-
-        // Load the ModelView matrix with the Worl to Camera (View) matrix
+        mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
+        uploadProjection();
+        mView = lookAt([camera.eye.x, camera.eye.y, camera.eye.z], [camera.at.x, camera.at.y, camera.at.z], [camera.up.x, camera.up.y, camera.up.z]);
+        // Load the ModelView matrix with the World to Camera (View) matrix
         loadMatrix(mView);
 
         //Claw();
         //LowerArm();
         //LowerArmAndClaw();
         //UpperArm();
-        RobotArm();
+        pushMatrix();
+            multTranslation([0,-0.5,-20]);
+            multScale([10, 0.5, 10]);
+
+            uploadModelView();
+            CUBE.draw(gl, program, mode);
+        popMatrix();
+        //RobotArm();
+      
+        /*
+         * Enable or disable options
+         */
+        if (options.backfaceCulling) {
+            //gl.isEnabled(gl.CULL_FACE) ? null : gl.enable(gl.CULL_FACE);
+            gl.enable(gl.CULL_FACE);
+            gl.cullFace(gl.BACK); // gl.BACK is the default value anyway
+        }
+
+        else {
+            //!gl.isEnabled(gl.CULL_FACE) ? null : gl.disable(gl.CULL_FACE);
+            gl.disable(gl.CULL_FACE);
+        }
+
+        if (options.zBuffer) {
+            gl.enable(gl.DEPTH_TEST);
+        }
+
+        else {
+            gl.disable(gl.DEPTH_TEST);
+        }
     }
 }
 
