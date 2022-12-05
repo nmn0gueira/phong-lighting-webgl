@@ -277,10 +277,12 @@ function setup(shaders)
         //UpperArm();
         pushMatrix();
             multTranslation([0,-0.5,-20]);
-            multScale([10, 0.5, 10]);
+            pushMatrix();
+                multScale([10, 0.5, 10]);
 
-            uploadModelView();
-            CUBE.draw(gl, program, mode);
+                uploadModelView();
+                CUBE.draw(gl, program, mode);
+            popMatrix();
         popMatrix();
         //RobotArm();
       
