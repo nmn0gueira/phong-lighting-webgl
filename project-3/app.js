@@ -4,6 +4,8 @@ import {modelView, loadMatrix, multRotationX, multRotationY, multRotationZ, mult
 
 import * as CUBE from '../../libs/objects/cube.js';
 import * as CYLINDER from '../../libs/objects/cylinder.js'
+import * as TORUS from '../../libs/objects/torus.js'
+import * as BUNNY from '../../libs/objects/bunny.js'
 import { perspective } from "../libs/MV.js";
 import { GUI } from "../libs/dat.gui.module.js";
 
@@ -62,7 +64,7 @@ function setup(shaders)
     let gl = setupWebGL(canvas);
 
     // Drawing mode (gl.LINES or gl.TRIANGLES)
-    let mode = gl.LINES;
+    let mode = gl.TRIANGLES;
 
     let program = buildProgramFromSources(gl, shaders["shader.vert"], shaders["shader.frag"]);
 
@@ -141,6 +143,8 @@ function setup(shaders)
     //gl.cullFace(gl.BACK);   //initial value of cullFace is GL_BACK
     CUBE.init(gl);
     CYLINDER.init(gl);
+    TORUS.init(gl);
+    BUNNY.init(gl);
 
     window.requestAnimationFrame(render);
 
@@ -170,91 +174,16 @@ function setup(shaders)
         gl.uniformMatrix4fv(gl.getUniformLocation(program, name), false, flatten(m));
     }
 
-    function UpperArm()
-    {
-        pushMatrix()
-            multScale([0.4, 0.1, 0.4]);
-            multTranslation([0, 0.5, 0]);
+    function setColor(color) {
 
-            uploadModelView();
-            CYLINDER.draw(gl, program, mode);
-        popMatrix()
-        multTranslation([0, 0.1, 0]);
-        multScale([0.05, 0.6, 0.05]);
-        multTranslation([0, 0.5, 0]);
+        const uColor = gl.getUniformLocation(program, "uColor");
 
-        uploadModelView();
-        CUBE.draw(gl, program, mode);
+        gl.uniform4fv(uColor, color);
     }
-
-    function LowerArmAndClaw()
-    {
-        multRotationZ(rc);
-        pushMatrix();
-            LowerArm();
-        popMatrix();
-        multTranslation([0, 0.45, 0]);
-        Claw();
-    }
-
-    function LowerArm()
-    {
-        pushMatrix();
-            multScale([0.1, 0.1, 0.05]);
-            multRotationX(90);
-
-            uploadModelView();
-            CYLINDER.draw(gl, program, mode);
-        popMatrix();
-        multTranslation([0, 0.05, 0]);
-        multScale([0.05, 0.4, 0.05]);
-        multTranslation([0, 0.5, 0]);
-
-        uploadModelView();
-        CUBE.draw(gl, program, mode);
-    }
+  
 
 
-    function Claw()
-    {
-        multRotationY(rg)
-        // Fist
-        pushMatrix();
-            multScale([0.2, 0.05, 0.2]);
-            multTranslation([0, -0.5, 0]);
-
-            uploadModelView();
-            CYLINDER.draw(gl, program, mode);
-        popMatrix();
-        // Maxilla 1
-        pushMatrix();
-            multTranslation([ag, 0, 0]);
-            multScale([0.02, 0.15, 0.1]);
-            multTranslation([0.5, 0.5, 0]);
-
-            uploadModelView();
-            CUBE.draw(gl, program, mode);
-        popMatrix();
-        // Maxilla 2
-        multTranslation([-ag, 0, 0]);
-        multScale([0.02, 0.15, 0.1]);
-        multTranslation([-0.5, 0.5, 0]);
-
-        uploadModelView();
-        CUBE.draw(gl, program, mode);
-    }
-
-    function RobotArm() 
-    {
-        multRotationY(rb);
-        pushMatrix();
-            UpperArm();
-        popMatrix();
-        multTranslation([0,0.7,0]);
-
-        multTranslation([0,0.05,0]);
-        LowerArmAndClaw();
-    }
+    
 
     function render()
     {
@@ -271,20 +200,75 @@ function setup(shaders)
         // Load the ModelView matrix with the World to Camera (View) matrix
         loadMatrix(mView);
 
-        //Claw();
-        //LowerArm();
-        //LowerArmAndClaw();
-        //UpperArm();
+        
         pushMatrix();
             multTranslation([0,-0.5,-20]);
+            //plano
             pushMatrix();
                 multScale([10, 0.5, 10]);
+
+                let color = [0.76, 0.45, 0.04,1.0];//brown
+                setColor(color);
 
                 uploadModelView();
                 CUBE.draw(gl, program, mode);
             popMatrix();
+
+            //cubo
+            pushMatrix();
+               multTranslation([-2.5,1,-2.5]);// left back quandrant
+               multScale([2, 2, 2]);
+
+               color = [0.85, 0.068, 0.068,1.0];//red
+              setColor(color);
+
+               uploadModelView();
+               CUBE.draw(gl, program, mode);
+            popMatrix();
+            
+            //torus/donut
+            pushMatrix();
+                multTranslation([-2.5,0.5,2.5]);// left front quandrant, for some reason moving torus with Y= 1 will make it float
+                multScale([2, 2, 2]); 
+
+                color = [0.01, 0.63, 0.11,1.0];//green
+                setColor(color);
+
+                uploadModelView();
+                TORUS.draw(gl, program, mode);
+            popMatrix();
+            
+            //cylinder
+            pushMatrix();
+                multTranslation([2.5,1,-2.5]);// right back quandrant
+                multScale([2, 2, 2]);
+
+                color = [0.27, 0.78, 0.35,1.0];//green
+                setColor(color);
+
+                uploadModelView();
+                CYLINDER.draw(gl, program, mode);
+            popMatrix();
+            
+            //bunny
+            pushMatrix();
+                multTranslation([2.5,0.2,2.5]);// right front quandrant, y=0.2 to move up a little
+                multScale([20, 20, 20]);// bunny with the same values ​​as the others it gets too small
+
+                color = [0.95, 0.70, 0.82,1.0];//pink
+                setColor(color);
+
+                uploadModelView();
+                BUNNY.draw(gl, program, mode);
+            popMatrix();
+
+
+
+
+
+
         popMatrix();
-        //RobotArm();
+      
       
         /*
          * Enable or disable options
