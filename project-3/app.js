@@ -288,6 +288,56 @@ function setup(shaders) {
         gl.uniformMatrix4fv(gl.getUniformLocation(program, name), false, flatten(m));
     }
 
+    function flattenObject(object) { // very basic, only used when sending uniform information to shaders
+        let res = [];
+        for (const o in object) {
+            res.push(o);
+        }
+        return res;
+    }
+
+    function updateLightingAndMaterial() {
+        const uNLights = gl.getUniformLocation(program, "uNLights"); // CHECK IF IT NEEDS TO BE IN THIS FUNCTION
+        gl.uniform1f(uNLights, MAX_LIGHTS);
+        
+        for (let i = 0; i < MAX_LIGHTS; i++) {
+            const uKaOfLight = gl.getUniformLocation(program, "uLights[" + i + "].ambient");
+            const uKdOfLight = gl.getUniformLocation(program, "uLights[" + i + "].diffuse");
+            const uKsOfLight = gl.getUniformLocation(program, "uLights[" + i + "].specular");
+
+            const uPosition = gl.getUniformLocation(program, "uLights[" + i + "].position");
+            const uAxis = gl.getUniformLocation(program, "uLights[" + i + "].axis");
+
+            const uAperture = gl.getUniformLocation(program, "uLights[" + i + "].aperture");
+            
+            const uCutoff = gl.getUniformLocation(program, "uLights[" + i + "].cutoff");
+
+            gl.uniform3fv(uKaOfLight, flattenObject(lights[i].intensities.ambient));
+            gl.uniform3fv(uKdOfLight, flattenObject(lights[i].intensities.diffuse));
+            gl.uniform3fv(uKsOfLight, flattenObject(lights[i].intensities.specular));
+
+            gl.uniform4fv(uPosition, flattenObject(lights[i].position));
+            gl.uniform3fv(uAxis, flattenObject(lights[i].axis));
+
+            gl.uniform1f(uAperture, lights[i].aperture);
+            gl.uniform1f(uCutoff, lights[i].cutoff);
+
+        
+        }
+        const uKaOfMaterial = gl.getUniformLocation(program, "uMaterial.Ka");    
+        const uKdOfMaterial = gl.getUniformLocation(program, "uMaterial.Kd");    
+        const uKsOfMaterial = gl.getUniformLocation(program, "uMaterial.Ks"); 
+           
+        const uShininess = gl.getUniformLocation(program, "uMaterial.shininess");
+        
+        gl.uniform3fv(uKaOfMaterial, flattenObject(material.ka));
+        gl.uniform3fv(uKdOfMaterial, flattenObject(material.kd));
+        gl.uniform3fv(uKsOfMaterial, flattenObject(material.ks));
+
+        gl.uniform1f(uShininess, material.shininess);
+
+    }
+
     function setColor(color) {
         const uColor = gl.getUniformLocation(program, "uColor");
         gl.uniform4fv(uColor, color);
@@ -307,12 +357,14 @@ function setup(shaders) {
         // Load the ModelView matrix with the World to Camera (View) matrix
         loadMatrix(mView);
 
+        updateLightingAndMaterial();
 
+
+      
+        //z = -20 to see the plane, use z = 0 to see up close
+        multTranslation([0, -0.5, -20]);
+        //plano
         pushMatrix();
-            //z = -20 to see the plane, use z = 0 to see up close
-            multTranslation([0, -0.5, -20]);
-            //plano
-            pushMatrix();
             multScale([10, 0.5, 10]);
 
             let color = [0.76, 0.45, 0.04, 1.0]; //brown
@@ -362,17 +414,15 @@ function setup(shaders) {
         popMatrix();
 
         //bunny
-        pushMatrix();
-            // y = 0.25 to move up a little
-            multTranslation([2.5, 0.25, 2.5]);  // right front quandrant, 
-            multScale([20, 20, 20]);            // bunny with the same values ​​as the others it gets too small
+        // y = 0.25 to move up a little
+        multTranslation([2.5, 0.25, 2.5]);  // right front quandrant, 
+        multScale([20, 20, 20]);            // bunny with the same values ​​as the others it gets too small
 
-            color = [0.95, 0.70, 0.82, 1.0];    //pink
-            setColor(color);
+        color = [0.95, 0.70, 0.82, 1.0];    //pink
+        setColor(color);
 
-            uploadModelView();
-            BUNNY.draw(gl, program, mode);
-        popMatrix();
+        uploadModelView();
+        BUNNY.draw(gl, program, mode);
 
 
         /*
