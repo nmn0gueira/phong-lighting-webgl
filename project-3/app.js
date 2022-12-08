@@ -1,5 +1,5 @@
 import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "../../libs/utils.js";
-import { ortho, lookAt, flatten } from "../../libs/MV.js";
+import { lookAt, flatten, normalMatrix } from "../../libs/MV.js";
 import { modelView, loadMatrix, multRotationX, multRotationY, multRotationZ, multScale, multTranslation, popMatrix, pushMatrix } from "../../libs/stack.js";
 
 import * as CUBE from '../../libs/objects/cube.js';
@@ -77,19 +77,14 @@ function setup(shaders) {
      */
     let lightsFolder = gui.addFolder("lights");
     let lights = [];
-    let paletteLighting = {         // Having a palette makes dat gui controller look better
-        ambient: [50, 50, 50],
-        diffuse: [60, 60, 60],
-        specular: [200, 200, 200]
-    };
 
     for (let i = 0; i < MAX_LIGHTS; i++) {
         lights.push({
             position: { x: 0, y: 0, z: 10, w: 0 },
             intensities: {
-                ambient: { r: 50, g: 50, b: 50 },
-                diffuse: { r: 60, g: 60, b: 60 },
-                specular: { r: 200, g: 200, b: 200 }
+                ambient: [50, 50, 50],
+                diffuse: [60, 60, 60],
+                specular: [200, 200, 200]
             },
             axis: { x: 0, y: 0, z: -1 },
             aperture: 10,
@@ -108,20 +103,20 @@ function setup(shaders) {
 
         let intensitiesFolder = newLightFolder.addFolder("intensities");
 
-        intensitiesFolder.addColor(paletteLighting, "ambient").onChange(function (value) {
-            lights[i].intensities.ambient.r = value[0] / 255;
-            lights[i].intensities.ambient.g = value[1] / 255;
-            lights[i].intensities.ambient.b = value[2] / 255;
+        intensitiesFolder.addColor(lights[i].intensities, "ambient").onChange(function (value) {
+            lights[i].intensities.ambient[0] = value[0];
+            lights[i].intensities.ambient[1] = value[1];
+            lights[i].intensities.ambient[2] = value[2];
         });
-        intensitiesFolder.addColor(paletteLighting, "diffuse").onChange(function (value) {
-            lights[i].intensities.diffuse.r = value[0] / 255;
-            lights[i].intensities.diffuse.g = value[1] / 255;
-            lights[i].intensities.diffuse.b = value[2] / 255;
+        intensitiesFolder.addColor(lights[i].intensities, "diffuse").onChange(function (value) {
+            lights[i].intensities.diffuse[0] = value[0];
+            lights[i].intensities.diffuse[1] = value[1];
+            lights[i].intensities.diffuse[2] = value[2];
         });
-        intensitiesFolder.addColor(paletteLighting, "specular").onChange(function (value) {
-            lights[i].intensities.specular.r = value[0] / 255;
-            lights[i].intensities.specular.g = value[1] / 255;
-            lights[i].intensities.specular.b = value[2] / 255;
+        intensitiesFolder.addColor(lights[i].intensities, "specular").onChange(function (value) {
+            lights[i].intensities.specular[0] = value[0];
+            lights[i].intensities.specular[1] = value[1];
+            lights[i].intensities.specular[2] = value[2];
         });
 
 
@@ -142,38 +137,33 @@ function setup(shaders) {
      * Material - GUI
      */
     let materialFolder = gui.addFolder("material");
-    let material = {
-        ka: { r: 150, g: 150, b: 150 },
-        kd: { r: 150, g: 150, b: 150 },
-        ks: { r: 200, g: 200, b: 200 },
-        shininess: 100
-    }
-    let paletteMaterial = {         // Having a palette makes dat gui controller look better
+    let bunnyMaterial = {
         ka: [150, 150, 150],
         kd: [150, 150, 150],
-        ks: [200, 200, 200]
-    };
+        ks: [200, 200, 200],
+        shininess: 100
+    }
 
-    materialFolder.addColor(paletteMaterial, "ka").onChange(function (value) {
-        material.ka.r = value[0]/255;
-        material.ka.g = value[1]/255;
-        material.ka.b = value[2]/255;
+    materialFolder.addColor(bunnyMaterial, "ka").onChange(function (value) {
+        bunnyMaterial.ka[0] = value[0];
+        bunnyMaterial.ka[1] = value[1];
+        bunnyMaterial.ka[2] = value[2];
     });
 
-    materialFolder.addColor(paletteMaterial, "kd").onChange(function (value) {
-        material.kd.r = value[0]/255;
-        material.kd.g = value[1]/255;
-        material.kd.b = value[2]/255;
+    materialFolder.addColor(bunnyMaterial, "kd").onChange(function (value) {
+        bunnyMaterial.kd[0] = value[0];
+        bunnyMaterial.kd[1] = value[1];
+        bunnyMaterial.kd[2] = value[2];
     });
 
-    materialFolder.addColor(paletteMaterial, "ks").onChange(function (value) {
-        material.ks.r = value[0]/255;
-        material.ks.g = value[1]/255;
-        material.ks.b = value[2]/255;
+    materialFolder.addColor(bunnyMaterial, "ks").onChange(function (value) {
+        bunnyMaterial.ks[0] = value[0];
+        bunnyMaterial.ks[1] = value[1];
+        bunnyMaterial.ks[2] = value[2];
     });
 
 
-    materialFolder.add(material, "shininess");
+    materialFolder.add(bunnyMaterial, "shininess");
 
 
 
@@ -189,11 +179,26 @@ function setup(shaders) {
     let mView = lookAt([0, 0, 1], [0, 0, 0], [0, 1, 0]);
     let zoom = 1.0;
 
-    /** Model parameters */
-    let ag = 0;
-    let rg = 0;
-    let rb = 0;
-    let rc = 0;
+    /** Other materials */
+    // Bunny values for every material
+    let redMaterial = {
+        ka: [150, 150, 150],
+        kd: [150, 150, 150],
+        ks: [200, 200, 200],
+        shininess: 100
+    };
+    let greenMaterial = {
+        ka: [150, 150, 150],
+        kd: [150, 150, 150],
+        ks: [200, 200, 200],
+        shininess: 100
+    };
+    let blueMaterial = {
+        ka: [150, 150, 150],
+        kd: [150, 150, 150],
+        ks: [200, 200, 200],
+        shininess: 100
+    };
 
     resize_canvas();
     window.addEventListener("resize", resize_canvas);
@@ -276,14 +281,6 @@ function setup(shaders) {
         mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
     }
 
-    function uploadProjection() {
-        uploadMatrix("mProjection", mProjection);
-    }
-
-    function uploadModelView() {
-        uploadMatrix("mModelView", modelView());
-    }
-
     function uploadMatrix(name, m) {
         gl.uniformMatrix4fv(gl.getUniformLocation(program, name), false, flatten(m));
     }
@@ -312,35 +309,34 @@ function setup(shaders) {
             
             const uCutoff = gl.getUniformLocation(program, "uLights[" + i + "].cutoff");
 
-            gl.uniform3fv(uKaOfLight, flattenObject(lights[i].intensities.ambient));
-            gl.uniform3fv(uKdOfLight, flattenObject(lights[i].intensities.diffuse));
-            gl.uniform3fv(uKsOfLight, flattenObject(lights[i].intensities.specular));
+            gl.uniform3fv(uKaOfLight, lights[i].intensities.ambient);
+            gl.uniform3fv(uKdOfLight, lights[i].intensities.diffuse);
+            gl.uniform3fv(uKsOfLight, lights[i].intensities.specular);
 
             gl.uniform4fv(uPosition, flattenObject(lights[i].position));
             gl.uniform3fv(uAxis, flattenObject(lights[i].axis));
 
             gl.uniform1f(uAperture, lights[i].aperture);
-            gl.uniform1f(uCutoff, lights[i].cutoff);
-
-        
+            gl.uniform1f(uCutoff, lights[i].cutoff);   
         }
+
         const uKaOfMaterial = gl.getUniformLocation(program, "uMaterial.Ka");    
         const uKdOfMaterial = gl.getUniformLocation(program, "uMaterial.Kd");    
         const uKsOfMaterial = gl.getUniformLocation(program, "uMaterial.Ks"); 
            
         const uShininess = gl.getUniformLocation(program, "uMaterial.shininess");
         
-        gl.uniform3fv(uKaOfMaterial, flattenObject(material.ka));
-        gl.uniform3fv(uKdOfMaterial, flattenObject(material.kd));
-        gl.uniform3fv(uKsOfMaterial, flattenObject(material.ks));
+        gl.uniform3fv(uKaOfMaterial, flattenObject(bunnyMaterial.ka));
+        gl.uniform3fv(uKdOfMaterial, flattenObject(bunnyMaterial.kd));
+        gl.uniform3fv(uKsOfMaterial, flattenObject(bunnyMaterial.ks));
 
-        gl.uniform1f(uShininess, material.shininess);
+        gl.uniform1f(uShininess, bunnyMaterial.shininess);
 
     }
 
     function setColor(color) {
         const uColor = gl.getUniformLocation(program, "uColor");
-        gl.uniform4fv(uColor, color);
+        gl.uniform3fv(uColor, color);
     }
 
     function render() {
@@ -352,8 +348,10 @@ function setup(shaders) {
 
         // Send the mProjection matrix to the GLSL program
         mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
-        uploadProjection();
+        uploadMatrix("mProjection", mProjection);
+        // Send the mView matrix to the GLSL program
         mView = lookAt([camera.eye.x, camera.eye.y, camera.eye.z], [camera.at.x, camera.at.y, camera.at.z], [camera.up.x, camera.up.y, camera.up.z]);
+        uploadMatrix("mView", mView);
         // Load the ModelView matrix with the World to Camera (View) matrix
         loadMatrix(mView);
 
@@ -367,10 +365,12 @@ function setup(shaders) {
         pushMatrix();
             multScale([10, 0.5, 10]);
 
-            let color = [0.76, 0.45, 0.04, 1.0]; //brown
+            let color = [0.76, 0.45, 0.04]; //brown
             setColor(color);
 
-            uploadModelView();
+            //uploadObject("uMaterial", )
+            uploadMatrix("mModelView", modelView());
+            uploadMatrix("mNormals", normalMatrix(modelView()));
             CUBE.draw(gl, program, mode);
         popMatrix();
 
@@ -380,10 +380,11 @@ function setup(shaders) {
             multTranslation([-2.5, 1, -2.5]);   // left back quandrant
             multScale([2, 2, 2]);
 
-            color = [0.85, 0.068, 0.068, 1.0];  // red
+            color = [0.85, 0.068, 0.068];  // red
             setColor(color);
 
-            uploadModelView();
+            uploadMatrix("mModelView", modelView());
+            uploadMatrix("mNormals", normalMatrix(modelView()));
             CUBE.draw(gl, program, mode);
         popMatrix();
 
@@ -393,10 +394,11 @@ function setup(shaders) {
             multTranslation([-2.5, 0.6, 2.5]);    // left front quandrant
             multScale([2, 2, 2]);
 
-            color = [0.01, 0.63, 0.11, 1.0];      //green
+            color = [0.01, 0.63, 0.11];      //green
             setColor(color);
 
-            uploadModelView();
+            uploadMatrix("mModelView", modelView());
+            uploadMatrix("mNormals", normalMatrix(modelView()));
             TORUS.draw(gl, program, mode);
         popMatrix();
 
@@ -406,10 +408,11 @@ function setup(shaders) {
             multTranslation([2.5, 1, -2.5]);   // right back quandrant
             multScale([2, 2, 2]);
 
-            color = [0.27, 0.78, 0.35, 1.0];   //green
+            color = [0.27, 0.78, 0.35];   //green
             setColor(color);
 
-            uploadModelView();
+            uploadMatrix("mModelView", modelView());
+            uploadMatrix("mNormals", normalMatrix(modelView()));
             CYLINDER.draw(gl, program, mode);
         popMatrix();
 
@@ -418,10 +421,11 @@ function setup(shaders) {
         multTranslation([2.5, 0.25, 2.5]);  // right front quandrant, 
         multScale([20, 20, 20]);            // bunny with the same values ​​as the others it gets too small
 
-        color = [0.95, 0.70, 0.82, 1.0];    //pink
+        color = [0.95, 0.70, 0.82];    //pink
         setColor(color);
 
-        uploadModelView();
+        uploadMatrix("mModelView", modelView());
+        uploadMatrix("mNormals", normalMatrix(modelView()));
         BUNNY.draw(gl, program, mode);
 
 

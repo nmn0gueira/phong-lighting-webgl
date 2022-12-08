@@ -31,14 +31,41 @@ uniform int uNLights; // Effective number of lights used
 uniform LightInfo uLights[MAX_LIGHTS]; // The array of lights present in the scene
 uniform MaterialInfo uMaterial;        // The material of the object being drawn
 
-uniform vec4 uColor;
+uniform mat4 mView;
+uniform mat4 mViewNormals;
 
+uniform vec3 uColor;
+
+varying vec3 fPosition;
 varying vec3 fNormal;
+varying vec3 fLight;
+varying vec3 fViewer;
 
 
 
 void main() {
-    gl_FragColor = uColor;
+    /*
+    vec3 V = normalize(fViewer);
+    vec3 N = normalize(fNormal);
+    vec3 R = reflect(-L,N);
+
+    // compute light vector in camera frame
+    if(lightPosition.w == 0.0) 
+        L = normalize(lightPosition.xyz);
+    else 
+        L = normalize(lightPosition.xyz + fViewer); // fViewer = -posC
+
+    float diffuseFactor = max( dot(L,N), 0.0 );
+    vec3 diffuse = diffuseFactor * diffuseColor;
+
+    float specularFactor = pow(max(dot(R,V), 0.0), shininess);
+    vec3 specular = specularFactor * specularColor;
+    if( dot(L,N) < 0.0 ) {
+        specular = vec3(0.0, 0.0, 0.0);
+    } 
+    
+    vec3 result = (ambientColor + diffuse + specular) * uColor;*/
+    gl_FragColor = vec4(uColor,1.0);  //result,1
     /*
     for(int i=0; i<MAX_LIGHTS; i++) {
     if(i == uNLights) break;     
