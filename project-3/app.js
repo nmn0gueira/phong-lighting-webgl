@@ -68,7 +68,7 @@ function setup(shaders) {
     let upFolder = folderCamera.addFolder("up");
 
     upFolder.add(camera.up, "x", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
-    upFolder.add(camera.up, "y", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+    upFolder.add(camera.up, "y", 0.1, 1, 0.1); // PODE SE ALTERAR OS VALORES
     upFolder.add(camera.up, "z", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
 
 
