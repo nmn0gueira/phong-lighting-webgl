@@ -36,7 +36,6 @@ uniform mat4 mViewNormals;
 
 uniform vec3 uColor;
 
-varying vec3 fPosition;
 varying vec3 fNormal;
 varying vec3 fLight;
 varying vec3 fViewer;

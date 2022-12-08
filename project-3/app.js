@@ -315,7 +315,7 @@ function setup(shaders) {
 
     function uploadLighting() {
         const uNLights = gl.getUniformLocation(program, "uNLights"); // CHECK IF IT NEEDS TO BE IN THIS FUNCTION
-        gl.uniform1f(uNLights, MAX_LIGHTS);
+        gl.uniform1i(uNLights, MAX_LIGHTS);
         
         for (let i = 0; i < MAX_LIGHTS; i++) {
             const uKaOfLight = gl.getUniformLocation(program, "uLights[" + i + "].ambient");
