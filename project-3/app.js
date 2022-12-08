@@ -181,6 +181,12 @@ function setup(shaders) {
 
     /** Other materials */
     // Bunny values for every material
+    let brownMaterial = {
+        ka: [150, 150, 150],
+        kd: [150, 150, 150],
+        ks: [200, 200, 200],
+        shininess: 100
+    };
     let redMaterial = {
         ka: [150, 150, 150],
         kd: [150, 150, 150],
@@ -281,6 +287,20 @@ function setup(shaders) {
         mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
     }
 
+    function uploadObject(object) {
+        const uKaOfMaterial = gl.getUniformLocation(program, "uMaterial.Ka");    
+        const uKdOfMaterial = gl.getUniformLocation(program, "uMaterial.Kd");    
+        const uKsOfMaterial = gl.getUniformLocation(program, "uMaterial.Ks"); 
+           
+        const uShininess = gl.getUniformLocation(program, "uMaterial.shininess");
+        
+        gl.uniform3fv(uKaOfMaterial, object.ka);
+        gl.uniform3fv(uKdOfMaterial, object.kd);
+        gl.uniform3fv(uKsOfMaterial, object.ks);
+
+        gl.uniform1f(uShininess, object.shininess);
+    }
+
     function uploadMatrix(name, m) {
         gl.uniformMatrix4fv(gl.getUniformLocation(program, name), false, flatten(m));
     }
@@ -293,7 +313,7 @@ function setup(shaders) {
         return res;
     }
 
-    function updateLightingAndMaterial() {
+    function uploadLighting() {
         const uNLights = gl.getUniformLocation(program, "uNLights"); // CHECK IF IT NEEDS TO BE IN THIS FUNCTION
         gl.uniform1f(uNLights, MAX_LIGHTS);
         
@@ -319,22 +339,9 @@ function setup(shaders) {
             gl.uniform1f(uAperture, lights[i].aperture);
             gl.uniform1f(uCutoff, lights[i].cutoff);   
         }
-
-        const uKaOfMaterial = gl.getUniformLocation(program, "uMaterial.Ka");    
-        const uKdOfMaterial = gl.getUniformLocation(program, "uMaterial.Kd");    
-        const uKsOfMaterial = gl.getUniformLocation(program, "uMaterial.Ks"); 
-           
-        const uShininess = gl.getUniformLocation(program, "uMaterial.shininess");
-        
-        gl.uniform3fv(uKaOfMaterial, flattenObject(bunnyMaterial.ka));
-        gl.uniform3fv(uKdOfMaterial, flattenObject(bunnyMaterial.kd));
-        gl.uniform3fv(uKsOfMaterial, flattenObject(bunnyMaterial.ks));
-
-        gl.uniform1f(uShininess, bunnyMaterial.shininess);
-
     }
 
-    function setColor(color) {
+    function uploadColor(color) {
         const uColor = gl.getUniformLocation(program, "uColor");
         gl.uniform3fv(uColor, color);
     }
@@ -354,76 +361,80 @@ function setup(shaders) {
         uploadMatrix("mView", mView);
         // Load the ModelView matrix with the World to Camera (View) matrix
         loadMatrix(mView);
-
-        updateLightingAndMaterial();
+        // Send the lighting information to the GLSL program
+        uploadLighting();
 
 
       
-        //z = -20 to see the plane, use z = 0 to see up close
+        // z = -20 to see the plane, use z = 0 to see up close
         multTranslation([0, -0.5, -20]);
-        //plano
+        // plane
         pushMatrix();
             multScale([10, 0.5, 10]);
 
             let color = [0.76, 0.45, 0.04]; //brown
-            setColor(color);
+            uploadColor(color);
 
-            //uploadObject("uMaterial", )
+            uploadObject(brownMaterial);
             uploadMatrix("mModelView", modelView());
             uploadMatrix("mNormals", normalMatrix(modelView()));
             CUBE.draw(gl, program, mode);
         popMatrix();
 
-        //cubo
+        // cube
         pushMatrix();
             // y = 1 = yCube/2
             multTranslation([-2.5, 1, -2.5]);   // left back quandrant
             multScale([2, 2, 2]);
 
             color = [0.85, 0.068, 0.068];  // red
-            setColor(color);
+            uploadColor(color);
 
+            uploadObject(redMaterial);
             uploadMatrix("mModelView", modelView());
             uploadMatrix("mNormals", normalMatrix(modelView()));
             CUBE.draw(gl, program, mode);
         popMatrix();
 
-        //torus/donut
+        // torus
         pushMatrix();
             // y = 0.5 to undo y translation at the start + 0.1 to lift up object
             multTranslation([-2.5, 0.6, 2.5]);    // left front quandrant
             multScale([2, 2, 2]);
 
             color = [0.01, 0.63, 0.11];      //green
-            setColor(color);
+            uploadColor(color);
 
+            uploadObject(greenMaterial);
             uploadMatrix("mModelView", modelView());
             uploadMatrix("mNormals", normalMatrix(modelView()));
             TORUS.draw(gl, program, mode);
         popMatrix();
 
-        //cylinder
+        // cylinder
         pushMatrix();
             // y = 1 = yCylinder/2
             multTranslation([2.5, 1, -2.5]);   // right back quandrant
             multScale([2, 2, 2]);
 
             color = [0.27, 0.78, 0.35];   //green
-            setColor(color);
+            uploadColor(color);
 
+            uploadObject(blueMaterial);
             uploadMatrix("mModelView", modelView());
             uploadMatrix("mNormals", normalMatrix(modelView()));
             CYLINDER.draw(gl, program, mode);
         popMatrix();
 
-        //bunny
+        // bunny
         // y = 0.25 to move up a little
         multTranslation([2.5, 0.25, 2.5]);  // right front quandrant, 
         multScale([20, 20, 20]);            // bunny with the same values ​​as the others it gets too small
 
         color = [0.95, 0.70, 0.82];    //pink
-        setColor(color);
+        uploadColor(color);
 
+        uploadObject(bunnyMaterial);
         uploadMatrix("mModelView", modelView());
         uploadMatrix("mNormals", normalMatrix(modelView()));
         BUNNY.draw(gl, program, mode);
