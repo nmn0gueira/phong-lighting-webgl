@@ -342,6 +342,58 @@ function setup(shaders) {
         const uColor = gl.getUniformLocation(program, "uColor");
         gl.uniform4fv(uColor, color);
     }
+//plane
+    function plane(){
+        multScale([10, 0.5, 10]);
+
+        let color = [0.76, 0.45, 0.04, 1.0]; //brown
+        setColor(color);
+
+        uploadModelView();
+        CUBE.draw(gl, program, mode);
+
+    }
+//cube
+    function cube(){
+        multScale([2, 2, 2]);
+
+        let color = [0.85, 0.068, 0.068, 1.0];  // red
+        setColor(color);
+
+        uploadModelView();
+         CUBE.draw(gl, program, mode);
+
+    }
+    function donut(){
+        multScale([2, 2, 2]);
+
+        let color = [0.01, 0.63, 0.11, 1.0];      //green
+        setColor(color);
+
+        uploadModelView();
+        TORUS.draw(gl, program, mode);
+
+    }
+
+    function cylinder(){
+        multScale([2, 2, 2]);
+
+        let color = [0.27, 0.78, 0.35, 1.0];   //green
+        setColor(color);
+
+        uploadModelView();
+        CYLINDER.draw(gl, program, mode);
+    }
+
+    function bunny(){
+        multScale([20, 20, 20]);  // bunny with the same values ​​as the others it gets too small
+
+        let color = [0.95, 0.70, 0.82, 1.0];  //pink
+        setColor(color);
+
+        uploadModelView();
+        BUNNY.draw(gl, program, mode);
+    }
 
     function render() {
         window.requestAnimationFrame(render);
@@ -365,64 +417,36 @@ function setup(shaders) {
         multTranslation([0, -0.5, -20]);
         //plano
         pushMatrix();
-            multScale([10, 0.5, 10]);
-
-            let color = [0.76, 0.45, 0.04, 1.0]; //brown
-            setColor(color);
-
-            uploadModelView();
-            CUBE.draw(gl, program, mode);
+            plane();
         popMatrix();
 
         //cubo
         pushMatrix();
             // y = 1 = yCube/2
             multTranslation([-2.5, 1, -2.5]);   // left back quandrant
-            multScale([2, 2, 2]);
-
-            color = [0.85, 0.068, 0.068, 1.0];  // red
-            setColor(color);
-
-            uploadModelView();
-            CUBE.draw(gl, program, mode);
+            cube();
         popMatrix();
 
         //torus/donut
         pushMatrix();
             // y = 0.5 to undo y translation at the start + 0.1 to lift up object
             multTranslation([-2.5, 0.6, 2.5]);    // left front quandrant
-            multScale([2, 2, 2]);
-
-            color = [0.01, 0.63, 0.11, 1.0];      //green
-            setColor(color);
-
-            uploadModelView();
-            TORUS.draw(gl, program, mode);
+            donut();
         popMatrix();
 
         //cylinder
         pushMatrix();
             // y = 1 = yCylinder/2
             multTranslation([2.5, 1, -2.5]);   // right back quandrant
-            multScale([2, 2, 2]);
-
-            color = [0.27, 0.78, 0.35, 1.0];   //green
-            setColor(color);
-
-            uploadModelView();
-            CYLINDER.draw(gl, program, mode);
+            cylinder();
         popMatrix();
 
         //bunny
+        pushMatrix();
         // y = 0.25 to move up a little
-        multTranslation([2.5, 0.25, 2.5]);  // right front quandrant, 
-        multScale([20, 20, 20]);            // bunny with the same values ​​as the others it gets too small
-
-        color = [0.95, 0.70, 0.82, 1.0];    //pink
-        setColor(color);
-
-        uploadModelView();
-        BUNNY.draw(gl, program, mode);
+            multTranslation([2.5, 0.25, 2.5]);  // right front quandrant, 
+            bunny();
+        popMatrix();
 
 
         /*
