@@ -65,7 +65,7 @@ void main() {
 
 /*if spotlight(if (aperture>0)){ //verifie if aperture >0
     L = normalize(uLights[i].position.xyz + fViewer);// nao sei se tem que ser pontual ou direcional ou ate ambos
-   float light=0.0
+   float light=0.0 // intensidade da luz por assim dizer
  
   float dotFromDirection = dot(L, -uLights[i].position.xyz );
   if (dotFromDirection >= aperture) {
