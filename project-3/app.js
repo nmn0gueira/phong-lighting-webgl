@@ -1,5 +1,5 @@
 import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "../../libs/utils.js";
-import { lookAt, flatten, normalMatrix } from "../../libs/MV.js";
+import { lookAt, flatten, normalMatrix, vec3 } from "../../libs/MV.js";
 import { modelView, loadMatrix, multRotationX, multRotationY, multRotationZ, multScale, multTranslation, popMatrix, pushMatrix } from "../../libs/stack.js";
 
 import * as CUBE from '../../libs/objects/cube.js';
@@ -41,35 +41,35 @@ function setup(shaders) {
         fovy: 45,
         near: 0.1,
         far: 40,
-        eye: { x: 0, y: 0, z: 1 },
-        at: { x: 0, y: 0, z: 0 },
-        up: { x: 0, y: 1, z: 0 }
+        eye: vec3(0.0, 5.0, 10.0),
+        at: vec3(0.0, 0.0, 0.0),
+        up: vec3(0.0, 1.0, 0.0)
     };
 
-    folderCamera.add(camera, "fovy", 0, 100, 1);   // PODE SE ALTERAR OS VALORES
-    folderCamera.add(camera, "near", 0.1, 1, 0.1); // PODE SE ALTERAR OS VALORES
-    folderCamera.add(camera, "far", 20, 40, 1);    // PODE SE ALTERAR OS VALORES
+    folderCamera.add(camera, "fovy", 1, 100, 1);   
+    folderCamera.add(camera, "near", 0.1, 20, 0.1); 
+    folderCamera.add(camera, "far", 0.1, 40, 0.1);
 
 
     let eyeFolder = folderCamera.addFolder("eye");
 
-    eyeFolder.add(camera.eye, "x", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
-    eyeFolder.add(camera.eye, "y", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
-    eyeFolder.add(camera.eye, "z", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+    eyeFolder.add(camera.eye, 0).name("x").step(0.1);
+    eyeFolder.add(camera.eye, 1).name("y").step(0.1);
+    eyeFolder.add(camera.eye, 2).name("z").step(0.1);
 
 
     let atFolder = folderCamera.addFolder("at");
 
-    atFolder.add(camera.at, "x", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
-    atFolder.add(camera.at, "y", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
-    atFolder.add(camera.at, "z", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+    atFolder.add(camera.at, 0).name("x").step(0.1);
+    atFolder.add(camera.at, 1).name("y").step(0.1);
+    atFolder.add(camera.at, 2).name("z").step(0.1);
 
 
     let upFolder = folderCamera.addFolder("up");
 
-    upFolder.add(camera.up, "x", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
-    upFolder.add(camera.up, "y", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
-    upFolder.add(camera.up, "z", 0, 1, 0.1); // PODE SE ALTERAR OS VALORES
+    upFolder.add(camera.up, 0, -1, 1, 0.02).name("x");
+    upFolder.add(camera.up, 1, -1, 1, 0.02).name("y");
+    upFolder.add(camera.up, 2, -1, 1, 0.02).name("z");
 
 
     /**
@@ -80,13 +80,13 @@ function setup(shaders) {
 
     for (let i = 0; i < MAX_LIGHTS; i++) {
         lights.push({
-            position: { x: 0, y: 0, z: 10, w: 0 },
+            position: [0, 0, 10, 0],
             intensities: {
                 ambient: [50, 50, 50],
                 diffuse: [60, 60, 60],
                 specular: [200, 200, 200]
             },
-            axis: { x: 0, y: 0, z: -1 },
+            axis: [0, 0, -1],
             aperture: 10,
             cutoff: 10
         });
@@ -95,10 +95,10 @@ function setup(shaders) {
 
         let positionFolder = newLightFolder.addFolder("position");
 
-        positionFolder.add(lights[i].position, "x");
-        positionFolder.add(lights[i].position, "y");
-        positionFolder.add(lights[i].position, "z");
-        positionFolder.add(lights[i].position, "w");
+        positionFolder.add(lights[i].position, 0).name("x");
+        positionFolder.add(lights[i].position, 1).name("y");
+        positionFolder.add(lights[i].position, 2).name("z");
+        positionFolder.add(lights[i].position, 3).name("w");
 
 
         let intensitiesFolder = newLightFolder.addFolder("intensities");
@@ -122,14 +122,14 @@ function setup(shaders) {
 
         let axisFolder = newLightFolder.addFolder("axis");
 
-        axisFolder.add(lights[i].axis, "x");
-        axisFolder.add(lights[i].axis, "y");
-        axisFolder.add(lights[i].axis, "z");
+        axisFolder.add(lights[i].axis, 0).name("x");
+        axisFolder.add(lights[i].axis, 1).name("y");
+        axisFolder.add(lights[i].axis, 2).name("z");
 
 
-        newLightFolder.add(lights[i], "aperture", 0, 100, 1);
+        newLightFolder.add(lights[i], "aperture");
 
-        newLightFolder.add(lights[i], "cutoff", 0, 100, 1);
+        newLightFolder.add(lights[i], "cutoff");
     }
 
 
@@ -176,28 +176,26 @@ function setup(shaders) {
     let program = buildProgramFromSources(gl, shaders["shader.vert"], shaders["shader.frag"]);
 
     let mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
-    let mView = lookAt([0, 0, 1], [0, 0, 0], [0, 1, 0]);
-    let zoom = 1.0;
+    let mView = lookAt(camera.eye, camera.at, camera.up);
 
     /** Other materials */
-    // Bunny values for every material
-    let brownMaterial = {
-        ka: [150, 150, 150],
-        kd: [150, 150, 150],
-        ks: [200, 200, 200],
-        shininess: 100
+    let groundMaterial = {
+        ka: [150, 150, 75],
+        kd: [125, 125, 125],
+        ks: [0, 0, 0],
+        shininess: 1.0
     };
     let redMaterial = {
-        ka: [150, 150, 150],
-        kd: [150, 150, 150],
+        ka: [150, 75, 75],
+        kd: [150, 75, 75],
         ks: [200, 200, 200],
-        shininess: 100
+        shininess: 100.0
     };
     let greenMaterial = {
-        ka: [150, 150, 150],
-        kd: [150, 150, 150],
+        ka: [50, 150, 50],
+        kd: [50, 150, 50],
         ks: [200, 200, 200],
-        shininess: 100
+        shininess: 10.0
     };
     let blueMaterial = {
         ka: [150, 150, 150],
@@ -209,66 +207,7 @@ function setup(shaders) {
     resize_canvas();
     window.addEventListener("resize", resize_canvas);
 
-    document.onkeydown = function (event) {
-        switch (event.key) {
-            case '1':
-                // Front view
-                mView = lookAt([0, 0, 1], [0, 0, 0], [0, 1, 0]);
-                break;
-            case '2':
-                // Top view
-                mView = lookAt([0, 1, 0], [0, 0, 0], [0, 0, -1]);
-                break;
-            case '3':
-                // Right view
-                mView = lookAt([1, 0, 0], [0, 0, 0], [0, 1, 0]);
-                break;
-            case '4':
-                mView = lookAt([2, 1, 1], [0, 0, 0], [0, 1, 0]);
-                break;
-            case '9':
-                mode = gl.LINES;
-                break;
-            case '0':
-                mode = gl.TRIANGLES;
-                break;
-            case 'p':
-                ag = Math.min(0.050, ag + 0.005);
-                break;
-            case 'o':
-                ag = Math.max(0, ag - 0.005);
-                break;
-            case 'q':
-                rg += 1;
-                break;
-            case 'e':
-                rg -= 1;
-                break;
-            case 'w':
-                rc = Math.min(120, rc + 1);
-                break;
-            case 's':
-                rc = Math.max(-120, rc - 1);
-                break;
-            case 'a':
-                rb -= 1;
-                break;
-            case 'd':
-                rb += 1;
-                break;
-            case '+':
-                zoom /= 1.1;
-                break;
-            case '-':
-                zoom *= 1.1;
-                break;
-        }
-    }
-
     gl.clearColor(0.3, 0.3, 0.3, 1.0); // MUDAR ISTO PARA PRETO MAIS A FRENTE
-    //gl.enable(gl.DEPTH_TEST);   // Enables Z-buffer depth test
-    //gl.enable(gl.CULL_FACE);      
-    //gl.cullFace(gl.BACK);   //initial value of cullFace is GL_BACK
     CUBE.init(gl);
     CYLINDER.init(gl);
     TORUS.init(gl);
@@ -341,11 +280,6 @@ function setup(shaders) {
         }
     }
 
-    function uploadColor(color) {
-        const uColor = gl.getUniformLocation(program, "uColor");
-        gl.uniform3fv(uColor, color);
-    }
-
     function render() {
         window.requestAnimationFrame(render);
 
@@ -357,25 +291,26 @@ function setup(shaders) {
         mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
         uploadMatrix("mProjection", mProjection);
         // Send the mView matrix to the GLSL program
-        mView = lookAt([camera.eye.x, camera.eye.y, camera.eye.z], [camera.at.x, camera.at.y, camera.at.z], [camera.up.x, camera.up.y, camera.up.z]);
+        mView = lookAt(camera.eye, camera.at, camera.up);
         uploadMatrix("mView", mView);
         // Load the ModelView matrix with the World to Camera (View) matrix
         loadMatrix(mView);
         // Send the lighting information to the GLSL program
         uploadLighting();
+        console.log(bunnyMaterial.ka, bunnyMaterial.kd, bunnyMaterial.ks);
 
 
       
         // z = -20 to see the plane, use z = 0 to see up close
-        multTranslation([0, -0.5, -20]);
+        multTranslation([0, -0.5, 0]);
         // plane
         pushMatrix();
             multScale([10, 0.5, 10]);
 
             let color = [0.76, 0.45, 0.04]; //brown
-            uploadColor(color);
+            //uploadColor(color);
 
-            uploadObject(brownMaterial);
+            uploadObject(groundMaterial);
             uploadMatrix("mModelView", modelView());
             uploadMatrix("mNormals", normalMatrix(modelView()));
             CUBE.draw(gl, program, mode);
@@ -388,7 +323,7 @@ function setup(shaders) {
             multScale([2, 2, 2]);
 
             color = [0.85, 0.068, 0.068];  // red
-            uploadColor(color);
+            //uploadColor(color);
 
             uploadObject(redMaterial);
             uploadMatrix("mModelView", modelView());
@@ -403,7 +338,7 @@ function setup(shaders) {
             multScale([2, 2, 2]);
 
             color = [0.01, 0.63, 0.11];      //green
-            uploadColor(color);
+            //uploadColor(color);
 
             uploadObject(greenMaterial);
             uploadMatrix("mModelView", modelView());
@@ -418,7 +353,7 @@ function setup(shaders) {
             multScale([2, 2, 2]);
 
             color = [0.27, 0.78, 0.35];   //green
-            uploadColor(color);
+            //uploadColor(color);
 
             uploadObject(blueMaterial);
             uploadMatrix("mModelView", modelView());
@@ -432,7 +367,7 @@ function setup(shaders) {
         multScale([20, 20, 20]);            // bunny with the same values ​​as the others it gets too small
 
         color = [0.95, 0.70, 0.82];    //pink
-        uploadColor(color);
+        //uploadColor(color);
 
         uploadObject(bunnyMaterial);
         uploadMatrix("mModelView", modelView());

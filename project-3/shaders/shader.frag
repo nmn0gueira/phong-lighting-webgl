@@ -31,10 +31,7 @@ uniform int uNLights; // Effective number of lights used
 uniform LightInfo uLights[MAX_LIGHTS]; // The array of lights present in the scene
 uniform MaterialInfo uMaterial;        // The material of the object being drawn
 
-uniform mat4 mView;
-uniform mat4 mViewNormals;
-
-uniform vec3 uColor;
+//uniform vec3 uColor;
 
 varying vec3 fNormal;
 varying vec3 fLight;
@@ -42,33 +39,41 @@ varying vec3 fViewer;
 
 
 
+
 void main() {
-    /*
+    
     vec3 V = normalize(fViewer);
     vec3 N = normalize(fNormal);
-    vec3 R = reflect(-L,N);
+    vec3 L;
 
-    // compute light vector in camera frame
-    if(lightPosition.w == 0.0) 
-        L = normalize(lightPosition.xyz);
-    else 
-        L = normalize(lightPosition.xyz + fViewer); // fViewer = -posC
-
-    float diffuseFactor = max( dot(L,N), 0.0 );
-    vec3 diffuse = diffuseFactor * diffuseColor;
-
-    float specularFactor = pow(max(dot(R,V), 0.0), shininess);
-    vec3 specular = specularFactor * specularColor;
-    if( dot(L,N) < 0.0 ) {
-        specular = vec3(0.0, 0.0, 0.0);
-    } 
-    
-    vec3 result = (ambientColor + diffuse + specular) * uColor;*/
-    gl_FragColor = vec4(uColor,1.0);  //result,1
-    /*
+    vec3 result = vec3(0.0,0.0,0.0);
     for(int i=0; i<MAX_LIGHTS; i++) {
-    if(i == uNLights) break;     
-    // ...
+        if(i == uNLights) break;
+        // 1.0/65025.0 = 1.0/(255.0*255.0)
+        vec3 ambientColor = 1.0/65025.0 * uLights[i].ambient * uMaterial.Ka;
+        vec3 diffuseColor = 1.0/65025.0 * uLights[i].diffuse * uMaterial.Kd;
+        vec3 specularColor = 1.0/65025.0 * uLights[i].specular * uMaterial.Ks;
+
+        
+
+        // compute light vector in camera frame
+        if(uLights[i].position.w == 0.0) // luz direcional
+            L = normalize(uLights[i].position.xyz);
+        else 
+            L = normalize(uLights[i].position.xyz + fViewer); // fViewer = -posC  luz pontual
+
+        
+        float diffuseFactor = max( dot(L,N), 0.0 );
+        vec3 diffuse = diffuseFactor * diffuseColor;
+
+        vec3 R = reflect(-L,N);
+        float specularFactor = pow(max(dot(R,V), 0.0), uMaterial.shininess);
+        vec3 specular = specularFactor * specularColor;
+        if( dot(L,N) < 0.0 ) {
+            specular = vec3(0.0, 0.0, 0.0);
+        }
+    
+        result += (ambientColor + diffuse + specular);
     }
-    */
+    gl_FragColor = vec4(result,1.0);  //result,1    
 }
