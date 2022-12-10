@@ -29,7 +29,7 @@ struct MaterialInfo {
 uniform int uNLights; // Effective number of lights used
 
 uniform LightInfo uLights[MAX_LIGHTS]; // The array of lights present in the scene
-uniform MaterialInfo uMaterial;        // The material of the object being drawn
+uniform MaterialInfo uMaterial;       // The material of the object being drawn
 
 //uniform vec3 uColor;
 
@@ -61,6 +61,36 @@ void main() {
             L = normalize(uLights[i].position.xyz);
         else 
             L = normalize(uLights[i].position.xyz + fViewer); // fViewer = -posC  luz pontual
+
+
+/*if spotlight(if (aperture>0)){ //verifie if aperture >0
+    L = normalize(uLights[i].position.xyz + fViewer);// nao sei se tem que ser pontual ou direcional ou ate ambos
+   float light=0.0
+ 
+  float dotFromDirection = dot(L, -uLights[i].position.xyz );
+  if (dotFromDirection >= aperture) {
+    light = dot(N, normalise(uLights[i].position.xyz));
+    if (light > 0.0) {// parte do decaimento , acos de dot(..) serve para calcular o angulo
+        light *= pow(cos(acos(dot(normalize(uLights[i].position.xyz), normalize (-axis)))),cutoff);
+        vec3 diffuse = diffuseFactor * diffuseColor 
+
+        vec3 R = reflect(-L,N);
+        float specularFactor = pow(max(dot(R,V), 0.0), uMaterial.shininess);
+        vec3 specular = specularFactor * specularColor;
+        if( dot(L,N) < 0.0 ) {
+            specular = vec3(0.0, 0.0, 0.0);
+        }
+    
+        result += (ambientColor + diffuse + specular);
+        result*=light;
+    }
+  }
+      
+    }
+  }
+}
+
+*/
 
         
         float diffuseFactor = max( dot(L,N), 0.0 );
