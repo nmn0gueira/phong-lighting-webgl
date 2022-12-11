@@ -62,6 +62,31 @@ void main() {
         else 
             L = normalize(uLights[i].position.xyz + fViewer); // fViewer = -posC  luz pontual
 
+//pontual, para por na parte do else
+/*{
+    L = normalize(uLights[i].position.xyz + fViewer);
+
+       //tudo igual exceto que se calcula a distancia e depois a atenuação conforme a distancia\\
+
+        float diffuseFactor = max( dot(L,N), 0.0 );
+        vec3 diffuse = diffuseFactor * diffuseColor;
+
+        vec3 R = reflect(-L,N);
+        float specularFactor = pow(max(dot(R,V), 0.0), uMaterial.shininess);
+        vec3 specular = specularFactor * specularColor;
+        if( dot(L,N) < 0.0 ) {
+            specular = vec3(0.0, 0.0, 0.0);
+        }
+
+        float distance =length(uLights[i].position.xyz,fNormal);
+        float attenuation=1.0/cutoff*distance
+    
+        result += (ambientColor + diffuse + specular);
+        result*=attenuation;
+}
+
+
+*/
 
 /*if spotlight(if (aperture>0)){ //verifie if aperture >0
     L = normalize(uLights[i].position.xyz + fViewer);// nao sei se tem que ser pontual ou direcional ou ate ambos
@@ -72,8 +97,10 @@ void main() {
     light = dot(N, normalise(uLights[i].position.xyz));
     if (light > 0.0) {// parte do decaimento , acos de dot(..) serve para calcular o angulo
         light *= pow(cos(acos(dot(normalize(uLights[i].position.xyz), normalize (-axis)))),cutoff);
-        vec3 diffuse = diffuseFactor * diffuseColor 
-
+        
+        
+        float diffuseFactor = max( dot(L,N), 0.0 );
+        vec3 diffuse = diffuseFactor * diffuseColor;
         vec3 R = reflect(-L,N);
         float specularFactor = pow(max(dot(R,V), 0.0), uMaterial.shininess);
         vec3 specular = specularFactor * specularColor;
@@ -91,7 +118,7 @@ void main() {
 }
 
 */
-
+gl_FragPos
         
         float diffuseFactor = max( dot(L,N), 0.0 );
         vec3 diffuse = diffuseFactor * diffuseColor;
