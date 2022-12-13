@@ -16,7 +16,7 @@ function setup(shaders) {
     let canvas = document.getElementById("gl-canvas");
     let aspect = canvas.width / canvas.height;
 
-    const MAX_LIGHTS = 3;
+    const MAX_LIGHTS = 1;
 
     /**
      * Graphics User Interface

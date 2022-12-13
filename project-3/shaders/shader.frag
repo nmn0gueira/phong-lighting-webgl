@@ -54,11 +54,13 @@ void main() {
         vec3 diffuseColor = 1.0/65025.0 * uLights[i].diffuse * uMaterial.Kd;
         vec3 specularColor = 1.0/65025.0 * uLights[i].specular * uMaterial.Ks;
 
+        vec3 offset = uLights[i].position.xyz - fPosition;
+
         
 
         // compute light vector in camera frame
         if(uLights[i].position.w == 0.0) {// luz direcional
-            L = normalize(uLights[i].position.xyz - uLights[i].axis.xyz); // se tiver mal, tirar o elemento que se ta a subtrair
+            L = normalize(uLights[i].position.xyz + uLights[i].axis.xyz); // se tiver mal, tirar o elemento que se ta a subtrair
         }
             
         else {
@@ -117,7 +119,7 @@ void main() {
 }
 
 */
-        
+        float dist = length(offset);
         float diffuseFactor = max( dot(L,N), 0.0 );
         vec3 diffuse = diffuseFactor * diffuseColor;
 
