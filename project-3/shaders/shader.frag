@@ -54,72 +54,19 @@ void main() {
         vec3 diffuseColor = 1.0/65025.0 * uLights[i].diffuse * uMaterial.Kd;
         vec3 specularColor = 1.0/65025.0 * uLights[i].specular * uMaterial.Ks;
 
-        vec3 offset = uLights[i].position.xyz - fPosition;
+        float attenuation;
 
         
 
         // compute light vector in camera frame
-        if(uLights[i].position.w == 0.0) {// luz direcional
-            L = normalize(uLights[i].position.xyz); // se tiver mal, tirar o elemento que se ta a subtrair
+        if(uLights[i].position.w == 0.0) { // Directional Light
+            L = normalize(uLights[i].position.xyz);
         }
             
         else {
-            L = normalize(uLights[i].position.xyz - fPosition); //  luz pontual
+            L = normalize(uLights[i].position.xyz - fPosition); // Point light
         }
             
-        //pontual, para por na parte do else
-
-       //tudo igual exceto que se calcula a distancia e depois a atenuação conforme a distancia\\
-
-        /*float diffuseFactor = max( dot(L,N), 0.0 );
-        vec3 diffuse = diffuseFactor * diffuseColor;
-
-        vec3 R = reflect(-L,N);
-        float specularFactor = pow(max(dot(R,V), 0.0), uMaterial.shininess);
-        vec3 specular = specularFactor * specularColor;
-        if( dot(L,N) < 0.0 ) {
-            specular = vec3(0.0, 0.0, 0.0);
-        }
-
-        float d =distance(uLights[i].position.xyz,fNormal);
-        float attenuation =1.0/ (uLights[i].cutoff * d);
-    
-        result += (ambientColor + diffuse + specular);
-        result*=attenuation;
-}*/
-
-
-/*if spotlight(if (aperture>0)){ //verifie if aperture >0
-    L = normalize(uLights[i].position.xyz + fViewer);// nao sei se tem que ser pontual ou direcional ou ate ambos
-   float light=0.0 // intensidade da luz por assim dizer
- 
-  float dotFromDirection = dot(L, -uLights[i].position.xyz );
-  if (dotFromDirection >= aperture) {
-    light = dot(N, normalise(uLights[i].position.xyz));
-    if (light > 0.0) {// parte do decaimento , acos de dot(..) serve para calcular o angulo
-        light *= pow(cos(acos(dot(normalize(uLights[i].position.xyz), normalize (-axis)))),uLights[i].cutoff);
-        
-        
-        float diffuseFactor = max( dot(L,N), 0.0 );
-        vec3 diffuse = diffuseFactor * diffuseColor;
-        vec3 R = reflect(-L,N);
-        float specularFactor = pow(max(dot(R,V), 0.0), uMaterial.shininess);
-        vec3 specular = specularFactor * specularColor;
-        if(dot(L,N) < 0.0 ) {
-            specular = vec3(0.0, 0.0, 0.0);
-        }
-    
-        result += (ambientColor + diffuse + specular);
-        result*=light;
-    }
-  }
-      
-    }
-  }
-}
-
-*/
-        float dist = length(offset);
         float diffuseFactor = max( dot(L,N), 0.0 );
         vec3 diffuse = diffuseFactor * diffuseColor;
 
@@ -129,8 +76,21 @@ void main() {
         if( dot(L,N) < 0.0 ) {
             specular = vec3(0.0, 0.0, 0.0);
         }
-    
-        result += (ambientColor + diffuse + specular);
+
+
+        if(uLights[i].cutoff < 0.0)
+            attenuation = 1.0; // não há atenuação
+        else {
+            vec3 LL = normalize(-uLights[i].axis);
+            if(dot(L, LL) < cos(uLights[i].aperture)) // aperture em RAD
+            // Fora do cone a atenuação é total
+                attenuation = 0.0;
+             else
+                attenuation = pow(max(dot(L,LL), 0.0), uLights[i].cutoff);//  de acordo com o que está no enunciado, a partir do cos(alpha)^n ou dot(L,LL)
+        }
+        //color = ambientColor + (diffuse + specular) * attenuation; // refl calculada a partir de cD e cS, com as propriedades da luz e material, tal como a cA.
+        
+        result += (ambientColor + (diffuse + specular)*attenuation);
     }
     gl_FragColor = vec4(result,1.0);  //result,1    
 }
