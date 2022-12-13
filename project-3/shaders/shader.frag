@@ -93,5 +93,5 @@ void main() {
         
         result += (ambientColor + (diffuse + specular)*attenuation);
     }
-    gl_FragColor = vec4(result,1.0);  //result,1    
+    gl_FragColor = vec4(result,1.0);   
 }

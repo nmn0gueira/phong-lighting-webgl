@@ -18,7 +18,7 @@ void main()
     
     // Compute the view vector
     fPosition = posC; // Perspective projection
-    //fViewer = vec3(0,0,1); // Parallel projection only
+    
     // Compute vertex position in clip coordinates (as usual)
     gl_Position = mProjection * mModelView * vPosition;
 }

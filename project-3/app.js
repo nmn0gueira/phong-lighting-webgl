@@ -17,12 +17,65 @@ function setup(shaders) {
     let aspect = canvas.width / canvas.height;
 
     const MAX_LIGHTS = 3;
-    /*MOUSE*/
+
+    /**  
+     * Mouse
+    */
     let angleX = 0;
     let angleY = 0; 
     let lastX = 0;
     let lastY = 0;
     let mouseDown = false; 
+
+    /**
+     * GUI Variables
+     */
+    let options = { backfaceCulling: true, zBuffer: true };
+
+    let camera = {
+        fovy: 45,
+        near: 0.1,
+        far: 40,
+        eye: vec3(0.0, 5.0, 10.0),
+        at: vec3(0.0, 0.0, 0.0),
+        up: vec3(0.0, 1.0, 0.0)
+    };
+
+    let lights = [];
+
+    let bunnyMaterial = {
+        ka: [150, 150, 150],
+        kd: [150, 150, 150],
+        ks: [200, 200, 200],
+        shininess: 100
+    }
+
+    /** Other materials */
+    let groundMaterial = {
+        ka: [150, 150, 75],
+        kd: [125, 125, 125],
+        ks: [0, 0, 0],
+        shininess: 1.0
+    };
+    let cubeMaterial = {
+        ka: [150, 75, 75],
+        kd: [150, 75, 75],
+        ks: [200, 200, 200],
+        shininess: 100.0
+    };
+    let torusMaterial = {
+        ka: [75, 150, 75],
+        kd: [75, 150, 75],
+        ks: [200, 200, 200],
+        shininess: 10.0
+    };
+    let cylinderMaterial = {
+        ka: [75, 75, 150],
+        kd: [75, 75, 150],
+        ks: [200, 200, 200],
+        shininess: 50.0
+    };
+
 
     /**
      * Graphics User Interface
@@ -33,7 +86,6 @@ function setup(shaders) {
      * Options - GUI
      */
     let folderOptions = gui.addFolder("options");
-    let options = { backfaceCulling: true, zBuffer: true };
 
     folderOptions.add(options, "backfaceCulling").name("backface culling");
     folderOptions.add(options, "zBuffer").name("depth test");
@@ -43,14 +95,6 @@ function setup(shaders) {
      * Camera - GUI
      */
     let folderCamera = gui.addFolder("camera");
-    let camera = {
-        fovy: 45,
-        near: 0.1,
-        far: 40,
-        eye: vec3(0.0, 5.0, 10.0),
-        at: vec3(0.0, 0.0, 0.0),
-        up: vec3(0.0, 1.0, 0.0)
-    };
 
     folderCamera.add(camera, "fovy", 1, 100, 1);   
     folderCamera.add(camera, "near", 0.1, 20, 0.1); 
@@ -82,11 +126,10 @@ function setup(shaders) {
      * Lights - GUI
      */
     let lightsFolder = gui.addFolder("lights");
-    let lights = [];
 
     for (let i = 0; i < MAX_LIGHTS; i++) {
-        lights.push({
-            position: [0, 0, 10, 0],
+        lights.push({   // All lights from the third light start as directional lights
+            position: [0, 0, 10, 1],
             intensities: {
                 ambient: [50, 50, 50],
                 diffuse: [60, 60, 60],
@@ -128,12 +171,11 @@ function setup(shaders) {
 
         let axisFolder = newLightFolder.addFolder("axis");
 
-        axisFolder.add(lights[i].axis, 0).name("x");
-        axisFolder.add(lights[i].axis, 1).name("y");
-        axisFolder.add(lights[i].axis, 2).name("z").step(1); // Since it z starts as negative gui has a defaulat step = 0.1
+        axisFolder.add(lights[i].axis, 0).name("x").step(0.1);
+        axisFolder.add(lights[i].axis, 1).name("y").step(0.1);
+        axisFolder.add(lights[i].axis, 2).name("z");    // z should always be at -1
 
-
-        newLightFolder.add(lights[i], "aperture");
+        newLightFolder.add(lights[i], "aperture", 0, 180, 1);
 
         newLightFolder.add(lights[i], "cutoff");
     }
@@ -143,12 +185,6 @@ function setup(shaders) {
      * Material - GUI
      */
     let materialFolder = gui.addFolder("material");
-    let bunnyMaterial = {
-        ka: [150, 150, 150],
-        kd: [150, 150, 150],
-        ks: [200, 200, 200],
-        shininess: 100
-    }
 
     materialFolder.addColor(bunnyMaterial, "ka").onChange(function (value) {
         bunnyMaterial.ka[0] = value[0];
@@ -184,36 +220,10 @@ function setup(shaders) {
     let mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
     let mView = lookAt(camera.eye, camera.at, camera.up);
 
-    /** Other materials */
-    let groundMaterial = {
-        ka: [150, 150, 75],
-        kd: [125, 125, 125],
-        ks: [0, 0, 0],
-        shininess: 1.0
-    };
-    let redMaterial = {
-        ka: [150, 75, 75],
-        kd: [150, 75, 75],
-        ks: [200, 200, 200],
-        shininess: 100.0
-    };
-    let greenMaterial = {
-        ka: [50, 150, 50],
-        kd: [50, 150, 50],
-        ks: [200, 200, 200],
-        shininess: 10.0
-    };
-    let blueMaterial = {
-        ka: [0, 0, 250],
-        kd: [150, 150, 150],
-        ks: [200, 200, 200],
-        shininess: 100
-    };
-
     resize_canvas();
     window.addEventListener("resize", resize_canvas);
 
-    gl.clearColor(0.3, 0.3, 0.3, 1.0); // MUDAR ISTO PARA PRETO MAIS A FRENTE
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
     CUBE.init(gl);
     CYLINDER.init(gl);
     TORUS.init(gl);
@@ -363,7 +373,7 @@ function setup(shaders) {
             multTranslation([-2.5, 1, -2.5]);   // left back quandrant
             multScale([2, 2, 2]);
 
-            uploadObject(redMaterial);
+            uploadObject(cubeMaterial);
             uploadMatrix("mModelView", modelView());
             uploadMatrix("mNormals", normalMatrix(modelView()));
             CUBE.draw(gl, program, mode);
@@ -375,7 +385,7 @@ function setup(shaders) {
             multTranslation([-2.5, 0.6, 2.5]);    // left front quandrant
             multScale([2, 2, 2]);
 
-            uploadObject(greenMaterial);
+            uploadObject(torusMaterial);
             uploadMatrix("mModelView", modelView());
             uploadMatrix("mNormals", normalMatrix(modelView()));
             TORUS.draw(gl, program, mode);
@@ -387,7 +397,7 @@ function setup(shaders) {
             multTranslation([2.5, 1, -2.5]);   // right back quandrant
             multScale([2, 2, 2]);
 
-            uploadObject(blueMaterial);
+            uploadObject(cylinderMaterial);
             uploadMatrix("mModelView", modelView());
             uploadMatrix("mNormals", normalMatrix(modelView()));
             CYLINDER.draw(gl, program, mode);
