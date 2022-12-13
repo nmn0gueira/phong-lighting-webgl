@@ -204,7 +204,7 @@ function setup(shaders) {
         shininess: 10.0
     };
     let blueMaterial = {
-        ka: [150, 150, 150],
+        ka: [0, 0, 250],
         kd: [150, 150, 150],
         ks: [200, 200, 200],
         shininess: 100
@@ -395,7 +395,7 @@ function setup(shaders) {
 
         // bunny
         // y = 0.25 to move up a little
-        multTranslation([2.5, 0.25, 2.5]);  // right front quandrant, 
+        multTranslation([2.5, 0.1, 2.5]);  // right front quandrant, 
         multScale([20, 20, 20]);            // bunny with the same values ​​as the others it gets too small
 
         uploadObject(bunnyMaterial);
