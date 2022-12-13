@@ -35,14 +35,14 @@ uniform MaterialInfo uMaterial;       // The material of the object being drawn
 
 varying vec3 fNormal;
 varying vec3 fLight;
-varying vec3 fViewer;
+varying vec3 fPosition;
 
 
 
 
 void main() {
-    
-    vec3 V = normalize(fViewer);
+    // fPosition = camera position
+    vec3 V = normalize(-fPosition);
     vec3 N = normalize(fNormal);
     vec3 L;
 
@@ -57,13 +57,15 @@ void main() {
         
 
         // compute light vector in camera frame
-        if(uLights[i].position.w == 0.0) // luz direcional
-            L = normalize(uLights[i].position.xyz);
-
+        if(uLights[i].position.w == 0.0) {// luz direcional
+            L = normalize(uLights[i].position.xyz - uLights[i].axis.xyz); // se tiver mal, tirar o elemento que se ta a subtrair
+        }
             
-        else 
-            L = normalize(uLights[i].position.xyz + fViewer); // fViewer = -posC  luz pontual
-//pontual, para por na parte do else
+        else {
+            L = normalize(uLights[i].position.xyz - fPosition); //  luz pontual
+        }
+            
+        //pontual, para por na parte do else
 
        //tudo igual exceto que se calcula a distancia e depois a atenuação conforme a distancia\\
 

@@ -124,7 +124,7 @@ function setup(shaders) {
 
         axisFolder.add(lights[i].axis, 0).name("x");
         axisFolder.add(lights[i].axis, 1).name("y");
-        axisFolder.add(lights[i].axis, 2).name("z");
+        axisFolder.add(lights[i].axis, 2).name("z").step(1); // Since it z starts as negative gui has a defaulat step = 0.1
 
 
         newLightFolder.add(lights[i], "aperture");
@@ -244,14 +244,6 @@ function setup(shaders) {
         gl.uniformMatrix4fv(gl.getUniformLocation(program, name), false, flatten(m));
     }
 
-    function flattenObject(object) { // very basic, only used when sending uniform information to shaders
-        let res = [];
-        for (const o in object) {
-            res.push(o);
-        }
-        return res;
-    }
-
     function uploadLighting() {
         const uNLights = gl.getUniformLocation(program, "uNLights"); // CHECK IF IT NEEDS TO BE IN THIS FUNCTION
         gl.uniform1i(uNLights, MAX_LIGHTS);
@@ -272,8 +264,8 @@ function setup(shaders) {
             gl.uniform3fv(uKdOfLight, lights[i].intensities.diffuse);
             gl.uniform3fv(uKsOfLight, lights[i].intensities.specular);
 
-            gl.uniform4fv(uPosition, flattenObject(lights[i].position));
-            gl.uniform3fv(uAxis, flattenObject(lights[i].axis));
+            gl.uniform4fv(uPosition, lights[i].position);
+            gl.uniform3fv(uAxis, lights[i].axis);
 
             gl.uniform1f(uAperture, lights[i].aperture);
             gl.uniform1f(uCutoff, lights[i].cutoff);   
@@ -297,8 +289,6 @@ function setup(shaders) {
         loadMatrix(mView);
         // Send the lighting information to the GLSL program
         uploadLighting();
-        console.log(bunnyMaterial.ka, bunnyMaterial.kd, bunnyMaterial.ks);
-
 
       
         // z = -20 to see the plane, use z = 0 to see up close
