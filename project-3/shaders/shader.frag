@@ -86,7 +86,9 @@ void main() {
             // Fora do cone a atenuação é total
                 attenuation = 0.0;
              else
-                attenuation = pow(max(dot(L,LL), 0.0), uLights[i].cutoff);//  de acordo com o que está no enunciado, a partir do cos(alpha)^n ou dot(L,LL)
+                // dot(L,LL) with both L and LL normalized will be equal to cos(alpha)
+                // where alpha is the angle between the two vectors L and LL
+                attenuation = pow(dot(L,LL), uLights[i].cutoff);//  de acordo com o que está no enunciado, a partir do cos(alpha)^n ou dot(L,LL)
         }
         //color = ambientColor + (diffuse + specular) * attenuation; // refl calculada a partir de cD e cS, com as propriedades da luz e material, tal como a cA.
         

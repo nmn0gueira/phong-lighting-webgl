@@ -267,7 +267,7 @@ function setup(shaders) {
             gl.uniform4fv(uPosition, lights[i].position);
             gl.uniform3fv(uAxis, lights[i].axis);
 
-            gl.uniform1f(uAperture, lights[i].aperture);
+            gl.uniform1f(uAperture, lights[i].aperture* (Math.PI/180)); // Converts to radians (might change)
             gl.uniform1f(uCutoff, lights[i].cutoff);   
         }
     }
