@@ -355,7 +355,7 @@ function setup(shaders) {
         }
     }
 
-    function sceneObjects() {
+    function drawObjects() {
         // z = -20 to see the plane, use z = 0 to see up close
         multTranslation([0, -0.5, 0]);
         // plane
@@ -437,7 +437,8 @@ function setup(shaders) {
         // Send the lighting information to the GLSL program
         uploadLighting();
 
-        sceneObjects();
+        // Draw objects in the scene
+        drawObjects();
 
         /*
          * Enable or disable options
