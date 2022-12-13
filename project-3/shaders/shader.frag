@@ -60,7 +60,7 @@ void main() {
 
         // compute light vector in camera frame
         if(uLights[i].position.w == 0.0) {// luz direcional
-            L = normalize(uLights[i].position.xyz + uLights[i].axis.xyz); // se tiver mal, tirar o elemento que se ta a subtrair
+            L = normalize(uLights[i].position.xyz); // se tiver mal, tirar o elemento que se ta a subtrair
         }
             
         else {
