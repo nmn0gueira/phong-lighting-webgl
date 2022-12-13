@@ -224,24 +224,25 @@ function setup(shaders) {
     canvas.addEventListener("mousedown", function(event) {
         const point = getCursorPosition(canvas, event);
         lastX = point[0];
-        lastY = point[1]
+        lastY = point[1];
         mouseDown = true;
-        console.log(point);
     });
 
     canvas.addEventListener("mousemove", function(event) {
         const point = getCursorPosition(canvas, event);
+        
         if (mouseDown){
             // Rotation speed factor
             // dx and dy are how the x or y in the mouse moved
-            const factor = 10/canvas.height;
+            const factor = 100/canvas.height;
             const dx = factor * (point[0] - lastX);
             const dy = factor * (point[1] - lastY);
 
             // update latest angle
-            angleX += dx;
-            angleY += dy;
-            console.log(point);
+            angleX += dy;
+            angleY += dx;
+            console.log(angleX);
+            console.log(angleY);
         }
         // update last mouse position
         lastX = point[0];
@@ -254,12 +255,13 @@ function setup(shaders) {
        console.log("Up");
     });
 
-    function getCursorPosition(canvas, event) {  
-        const mx = event.offsetX;
-        const my = event.offsetY;
+    function getCursorPosition(canvas, event) {
+        const rect = canvas.getBoundingClientRect(); // abs. size of element
+        const scaleX = canvas.width / rect.width;    // relationship bitmap vs. element for x
+        const scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for y
 
-        const x = ((mx / canvas.width * 2) - 1);
-        const y = (((canvas.height - my)/canvas.height * 2) -1);
+        const x = (event.clientX - rect.left) * scaleX;   // scale mouse coordinates after they have
+        const y = (event.clientY - rect.top) * scaleY;     // been adjusted to be relative to element
 
         return vec2(x,y);
     }
@@ -349,9 +351,6 @@ function setup(shaders) {
         pushMatrix();
             multScale([10, 0.5, 10]);
 
-            let color = [0.76, 0.45, 0.04]; //brown
-            //uploadColor(color);
-
             uploadObject(groundMaterial);
             uploadMatrix("mModelView", modelView());
             uploadMatrix("mNormals", normalMatrix(modelView()));
@@ -363,9 +362,6 @@ function setup(shaders) {
             // y = 1 = yCube/2
             multTranslation([-2.5, 1, -2.5]);   // left back quandrant
             multScale([2, 2, 2]);
-
-            color = [0.85, 0.068, 0.068];  // red
-            //uploadColor(color);
 
             uploadObject(redMaterial);
             uploadMatrix("mModelView", modelView());
@@ -379,9 +375,6 @@ function setup(shaders) {
             multTranslation([-2.5, 0.6, 2.5]);    // left front quandrant
             multScale([2, 2, 2]);
 
-            color = [0.01, 0.63, 0.11];      //green
-            //uploadColor(color);
-
             uploadObject(greenMaterial);
             uploadMatrix("mModelView", modelView());
             uploadMatrix("mNormals", normalMatrix(modelView()));
@@ -394,9 +387,6 @@ function setup(shaders) {
             multTranslation([2.5, 1, -2.5]);   // right back quandrant
             multScale([2, 2, 2]);
 
-            color = [0.27, 0.78, 0.35];   //green
-            //uploadColor(color);
-
             uploadObject(blueMaterial);
             uploadMatrix("mModelView", modelView());
             uploadMatrix("mNormals", normalMatrix(modelView()));
@@ -407,9 +397,6 @@ function setup(shaders) {
         // y = 0.25 to move up a little
         multTranslation([2.5, 0.25, 2.5]);  // right front quandrant, 
         multScale([20, 20, 20]);            // bunny with the same values ​​as the others it gets too small
-
-        color = [0.95, 0.70, 0.82];    //pink
-        //uploadColor(color);
 
         uploadObject(bunnyMaterial);
         uploadMatrix("mModelView", modelView());
