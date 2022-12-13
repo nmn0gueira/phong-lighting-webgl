@@ -10,12 +10,12 @@ struct LightInfo {
 
     // Light geometry
     vec4 position;  // Position/direction of light (in camera coordinates)
-    vec3 axis;      // Where light is pointing to
+    vec3 axis;      // Where light is pointing to (for point light and spotlight only)
 
     // Other light properties
-    float aperture; // Opening angle
+    float aperture; // Opening angle (for spotlight only)
 
-    float cutoff;   // Decay parameter
+    float cutoff;   // Decay parameter (for spotlight only)
 
 };
 
@@ -79,18 +79,17 @@ void main() {
 
 
         if(uLights[i].cutoff < 0.0)
-            attenuation = 1.0; // não há atenuação
+            attenuation = 1.0; // there is no attenuation
         else {
             vec3 LL = normalize(-uLights[i].axis);
-            if(dot(L, LL) < cos(uLights[i].aperture)) // aperture em RAD
-            // Fora do cone a atenuação é total
+            if(dot(L, LL) < cos(radians(uLights[i].aperture))) // aperture in radians
+            // Total attenuation outside the cone
                 attenuation = 0.0;
              else
                 // dot(L,LL) with both L and LL normalized will be equal to cos(alpha)
                 // where alpha is the angle between the two vectors L and LL
-                attenuation = pow(dot(L,LL), uLights[i].cutoff);//  de acordo com o que está no enunciado, a partir do cos(alpha)^n ou dot(L,LL)
+                attenuation = pow(dot(L,LL), uLights[i].cutoff);
         }
-        //color = ambientColor + (diffuse + specular) * attenuation; // refl calculada a partir de cD e cS, com as propriedades da luz e material, tal como a cA.
         
         result += (ambientColor + (diffuse + specular)*attenuation);
     }
