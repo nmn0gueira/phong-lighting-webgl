@@ -1,6 +1,6 @@
 import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "../../libs/utils.js";
-import { lookAt, flatten, normalMatrix, vec3 } from "../../libs/MV.js";
-import { modelView, loadMatrix, multRotationX, multRotationY, multRotationZ, multScale, multTranslation, popMatrix, pushMatrix } from "../../libs/stack.js";
+import { lookAt, flatten, normalMatrix, vec2, vec3, rotateX, rotateY, mult } from "../../libs/MV.js";
+import { modelView, loadMatrix, multScale, multTranslation, popMatrix, pushMatrix } from "../../libs/stack.js";
 
 import * as CUBE from '../../libs/objects/cube.js';
 import * as CYLINDER from '../../libs/objects/cylinder.js'
@@ -17,6 +17,12 @@ function setup(shaders) {
     let aspect = canvas.width / canvas.height;
 
     const MAX_LIGHTS = 3;
+    /*MOUSE*/
+    let angleX = 0;
+    let angleY = 0; 
+    let lastX = 0;
+    let lastY = 0;
+    let mouseDown = false; 
 
     /**
      * Graphics User Interface
@@ -215,6 +221,48 @@ function setup(shaders) {
 
     window.requestAnimationFrame(render);
 
+    canvas.addEventListener("mousedown", function(event) {
+        const point = getCursorPosition(canvas, event);
+        lastX = point[0];
+        lastY = point[1]
+        mouseDown = true;
+        console.log(point);
+    });
+
+    canvas.addEventListener("mouseover", function(event) {
+        const point = getCursorPosition(canvas, event);
+        if (mouseDown){
+            // Rotation speed factor
+            // dx and dy are how the x or y in the mouse moved
+            const factor = 10/canvas.height;
+            const dx = factor * (point[0] - lastX);
+            const dy = factor * (point[1] - lastY);
+
+            // update latest angle
+            angleX += dx;
+            angleY += dy;
+            console.log(point);
+        }
+        // update last mouse position
+        lastX = point[0];
+        lastY = point[1];
+        console.log("Teste");
+    });
+
+    canvas.addEventListener("mouseup", function(event) {
+       mouseDown = false;
+       console.log("Up");
+    });
+
+    function getCursorPosition(canvas, event) {  
+        const mx = event.offsetX;
+        const my = event.offsetY;
+
+        const x = ((mx / canvas.width * 2) - 1);
+        const y = (((canvas.height - my)/canvas.height * 2) -1);
+
+        return vec2(x,y);
+    }
 
     function resize_canvas(event) {
         canvas.width = window.innerWidth;
@@ -279,14 +327,18 @@ function setup(shaders) {
 
         gl.useProgram(program);
 
-        // Send the mProjection matrix to the GLSL program
         mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
+        // Send the mProjection matrix to the GLSL program
         uploadMatrix("mProjection", mProjection);
+        
+        // Rotate according to mouse drag
+        mView = mult(lookAt(camera.eye, camera.at, camera.up), mult(rotateX(angleX), rotateY(angleY)));
         // Send the mView matrix to the GLSL program
-        mView = lookAt(camera.eye, camera.at, camera.up);
         uploadMatrix("mView", mView);
+
         // Load the ModelView matrix with the World to Camera (View) matrix
         loadMatrix(mView);
+
         // Send the lighting information to the GLSL program
         uploadLighting();
 
