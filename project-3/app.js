@@ -229,7 +229,7 @@ function setup(shaders) {
         console.log(point);
     });
 
-    canvas.addEventListener("mouseover", function(event) {
+    canvas.addEventListener("mousemove", function(event) {
         const point = getCursorPosition(canvas, event);
         if (mouseDown){
             // Rotation speed factor
