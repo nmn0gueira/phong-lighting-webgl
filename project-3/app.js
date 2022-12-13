@@ -42,37 +42,72 @@ function setup(shaders) {
     };
 
     let lights = [];
+    lights.push({   // Starts as spotlight
+        position: [0.0, 0.0, 10.0, 1.0],
+        intensities: {
+            ambient: [50.0, 50.0, 50.0],
+            diffuse: [60.0, 60.0, 60.0],
+            specular: [200.0, 200.0, 200.0]
+        },
+        axis: [0.0, 0.0, -1.0],
+        aperture: 10,
+        cutoff: 10
+    });
+
+    lights.push({   // Starts as point light
+        position: [5.0, 5.0, 10.0, 1],
+        intensities: {
+            ambient: [75.0, 75.0, 100.0],
+            diffuse: [75.0, 75.0, 100.0],
+            specular: [150.0, 150.0, 175.0]
+        },
+        axis: [-5.0, 5.0, -2.0],
+        aperture: 180,
+        cutoff: -1
+    });
+
+    lights.push({   // Starts as directional light
+        position: [-20.0, 50.0, 50.0, 0.0],
+        intensities: {
+            ambient: [100.0, 75.0, 75.0],
+            diffuse: [100.0, 75.0, 75.0],
+            specular: [175.0, 150.0, 150.0]
+        },
+        axis: [20.0, -5.0, -5.0],
+        aperture: 180,
+        cutoff: -1
+    });
 
     let bunnyMaterial = {
-        ka: [150, 150, 150],
-        kd: [150, 150, 150],
-        ks: [200, 200, 200],
-        shininess: 100
+        ka: [150.0, 150.0, 150.0],
+        kd: [150.0, 150.0, 150.0],
+        ks: [200.0, 200.0, 200.0],
+        shininess: 100.0
     }
 
     /** Other materials */
     let groundMaterial = {
-        ka: [150, 150, 75],
-        kd: [125, 125, 125],
-        ks: [0, 0, 0],
+        ka: [150.0, 150.0, 75.0],
+        kd: [125.0, 125.0, 125.0],
+        ks: [0.0, 0.0, 0.0],
         shininess: 1.0
     };
     let cubeMaterial = {
-        ka: [150, 75, 75],
-        kd: [150, 75, 75],
-        ks: [200, 200, 200],
+        ka: [150.0, 75.0, 75.0],
+        kd: [150.0, 75.0, 75.0],
+        ks: [200.0, 200.0, 200.0],
         shininess: 100.0
     };
     let torusMaterial = {
-        ka: [75, 150, 75],
-        kd: [75, 150, 75],
-        ks: [200, 200, 200],
+        ka: [75.0, 150.0, 75.0],
+        kd: [75.0, 150.0, 75.0],
+        ks: [200.0, 200.0, 200.0],
         shininess: 10.0
     };
     let cylinderMaterial = {
-        ka: [75, 75, 150],
-        kd: [75, 75, 150],
-        ks: [200, 200, 200],
+        ka: [75.0, 75.0, 150.0],
+        kd: [75.0, 75.0, 150.0],
+        ks: [200.0, 200.0, 200.0],
         shininess: 50.0
     };
 
@@ -128,19 +163,7 @@ function setup(shaders) {
     let lightsFolder = gui.addFolder("lights");
 
     for (let i = 0; i < MAX_LIGHTS; i++) {
-        lights.push({   // All lights from the third light start as directional lights
-            position: [0, 0, 10, 1],
-            intensities: {
-                ambient: [50, 50, 50],
-                diffuse: [60, 60, 60],
-                specular: [200, 200, 200]
-            },
-            axis: [0, 0, -1],
-            aperture: 10,
-            cutoff: 10
-        });
         let newLightFolder = lightsFolder.addFolder("Light" + (i + 1));
-
 
         let positionFolder = newLightFolder.addFolder("position");
 
@@ -173,11 +196,11 @@ function setup(shaders) {
 
         axisFolder.add(lights[i].axis, 0).name("x").step(0.1);
         axisFolder.add(lights[i].axis, 1).name("y").step(0.1);
-        axisFolder.add(lights[i].axis, 2).name("z");    // z should always be at -1
+        axisFolder.add(lights[i].axis, 2).name("z");    // z cannot be 0
 
         newLightFolder.add(lights[i], "aperture", 0, 180, 1);
-
-        newLightFolder.add(lights[i], "cutoff");
+        // Cutoff does not need to be lower than -1 for intended effect in lighting
+        newLightFolder.add(lights[i], "cutoff").min(-1); 
     }
 
 
@@ -215,7 +238,7 @@ function setup(shaders) {
     // Drawing mode (gl.LINES or gl.TRIANGLES)
     let mode = gl.TRIANGLES;
 
-    let program = buildProgramFromSources(gl, shaders["shader.vert"], shaders["shader.frag"]);
+    let program = buildProgramFromSources(gl, shaders["phong.vert"], shaders["phong.frag"]);
 
     let mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
     let mView = lookAt(camera.eye, camera.at, camera.up);
@@ -332,29 +355,7 @@ function setup(shaders) {
         }
     }
 
-    function render() {
-        window.requestAnimationFrame(render);
-
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        gl.useProgram(program);
-
-        mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
-        // Send the mProjection matrix to the GLSL program
-        uploadMatrix("mProjection", mProjection);
-        
-        // Rotate according to mouse drag
-        mView = mult(lookAt(camera.eye, camera.at, camera.up), mult(rotateX(angleX), rotateY(angleY)));
-        // Send the mView matrix to the GLSL program
-        uploadMatrix("mView", mView);
-
-        // Load the ModelView matrix with the World to Camera (View) matrix
-        loadMatrix(mView);
-
-        // Send the lighting information to the GLSL program
-        uploadLighting();
-
-      
+    function sceneObjects() {
         // z = -20 to see the plane, use z = 0 to see up close
         multTranslation([0, -0.5, 0]);
         // plane
@@ -406,25 +407,47 @@ function setup(shaders) {
         // bunny
         // y = 0.25 to move up a little
         multTranslation([2.5, 0.1, 2.5]);  // right front quandrant, 
-        multScale([20, 20, 20]);            // bunny with the same values ​​as the others it gets too small
+        multScale([20, 20, 20]);            // bunny with the same values ​​as the others gets too small
 
         uploadObject(bunnyMaterial);
         uploadMatrix("mModelView", modelView());
         uploadMatrix("mNormals", normalMatrix(modelView()));
         BUNNY.draw(gl, program, mode);
+    }
 
+    function render() {
+        window.requestAnimationFrame(render);
+
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.useProgram(program);
+
+        mProjection = perspective(camera.fovy, aspect, camera.near, camera.far);
+        // Send the mProjection matrix to the GLSL program
+        uploadMatrix("mProjection", mProjection);
+        
+        // Rotate according to mouse drag
+        mView = mult(lookAt(camera.eye, camera.at, camera.up), mult(rotateX(angleX), rotateY(angleY)));
+        // Send the mView matrix to the GLSL program
+        uploadMatrix("mView", mView);
+
+        // Load the ModelView matrix with the World to Camera (View) matrix
+        loadMatrix(mView);
+
+        // Send the lighting information to the GLSL program
+        uploadLighting();
+
+        sceneObjects();
 
         /*
          * Enable or disable options
          */
         if (options.backfaceCulling) {
-            //gl.isEnabled(gl.CULL_FACE) ? null : gl.enable(gl.CULL_FACE);
             gl.enable(gl.CULL_FACE);
             gl.cullFace(gl.BACK); // gl.BACK is the default value anyway
         }
 
         else {
-            //!gl.isEnabled(gl.CULL_FACE) ? null : gl.disable(gl.CULL_FACE);
             gl.disable(gl.CULL_FACE);
         }
 
@@ -438,5 +461,5 @@ function setup(shaders) {
     }
 }
 
-const urls = ["shader.vert", "shader.frag"];
+const urls = ["phong.vert", "phong.frag"];
 loadShadersFromURLS(urls).then(shaders => setup(shaders))

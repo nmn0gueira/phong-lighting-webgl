@@ -27,11 +27,8 @@ struct MaterialInfo {
 };
 
 uniform int uNLights; // Effective number of lights used
-
 uniform LightInfo uLights[MAX_LIGHTS]; // The array of lights present in the scene
 uniform MaterialInfo uMaterial;       // The material of the object being drawn
-
-//uniform vec3 uColor;
 
 varying vec3 fNormal;
 varying vec3 fLight;
@@ -55,8 +52,6 @@ void main() {
         vec3 specularColor = 1.0/65025.0 * uLights[i].specular * uMaterial.Ks;
 
         float attenuation;
-
-        
 
         // compute light vector in camera frame
         if(uLights[i].position.w == 0.0) { // Directional Light
