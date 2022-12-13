@@ -328,7 +328,7 @@ function setup(shaders) {
     }
 
     function uploadLighting() {
-        const uNLights = gl.getUniformLocation(program, "uNLights"); // CHECK IF IT NEEDS TO BE IN THIS FUNCTION
+        const uNLights = gl.getUniformLocation(program, "uNLights");
         gl.uniform1i(uNLights, MAX_LIGHTS);
         
         for (let i = 0; i < MAX_LIGHTS; i++) {
@@ -428,6 +428,7 @@ function setup(shaders) {
         
         // Rotate according to mouse drag
         mView = mult(lookAt(camera.eye, camera.at, camera.up), mult(rotateX(angleX), rotateY(angleY)));
+
         // Send the mView matrix to the GLSL program
         uploadMatrix("mView", mView);
 
