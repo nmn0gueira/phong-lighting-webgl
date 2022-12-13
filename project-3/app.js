@@ -247,12 +247,12 @@ function setup(shaders) {
         // update last mouse position
         lastX = point[0];
         lastY = point[1];
-        console.log("Teste");
+       
     });
 
     canvas.addEventListener("mouseup", function(event) {
        mouseDown = false;
-       console.log("Up");
+      
     });
 
     function getCursorPosition(canvas, event) {
