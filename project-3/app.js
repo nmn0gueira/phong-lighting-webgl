@@ -60,7 +60,7 @@ function setup(shaders) {
             specular: [150.0, 150.0, 175.0]
         },
         axis: [-5.0, 5.0, -2.0],
-        aperture: 180,
+        aperture: 90,
         cutoff: -1
     });
 
@@ -72,7 +72,7 @@ function setup(shaders) {
             specular: [175.0, 150.0, 150.0]
         },
         axis: [20.0, -5.0, -5.0],
-        aperture: 180,
+        aperture: 90,
         cutoff: -1
     });
 
