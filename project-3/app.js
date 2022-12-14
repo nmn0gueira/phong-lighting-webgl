@@ -196,7 +196,7 @@ function setup(shaders) {
         axisFolder.add(lights[i].axis, 1).name("y").step(0.1);
         axisFolder.add(lights[i].axis, 2).name("z");    // z cannot be 0
 
-        newLightFolder.add(lights[i], "aperture", 0, 180, 1);
+        newLightFolder.add(lights[i], "aperture", 0, 90, 1);
         // Cutoff does not need to be lower than -1 for intended effect in lighting
         newLightFolder.add(lights[i], "cutoff").min(-1); 
     }
