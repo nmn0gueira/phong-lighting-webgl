@@ -16,8 +16,6 @@ function setup(shaders) {
     let canvas = document.getElementById("gl-canvas");
     let aspect = canvas.width / canvas.height;
 
-    const MAX_LIGHTS = 3;
-
     /**  
      * Mouse
     */
@@ -162,7 +160,7 @@ function setup(shaders) {
      */
     let lightsFolder = gui.addFolder("lights");
 
-    for (let i = 0; i < MAX_LIGHTS; i++) {
+    for (let i = 0; i < lights.length; i++) {
         let newLightFolder = lightsFolder.addFolder("Light" + (i + 1));
 
         let positionFolder = newLightFolder.addFolder("position");
@@ -329,9 +327,9 @@ function setup(shaders) {
 
     function uploadLighting() {
         const uNLights = gl.getUniformLocation(program, "uNLights");
-        gl.uniform1i(uNLights, MAX_LIGHTS);
+        gl.uniform1i(uNLights, lights.length);
         
-        for (let i = 0; i < MAX_LIGHTS; i++) {
+        for (let i = 0; i < lights.length; i++) {
             const uKaOfLight = gl.getUniformLocation(program, "uLights[" + i + "].ambient");
             const uKdOfLight = gl.getUniformLocation(program, "uLights[" + i + "].diffuse");
             const uKsOfLight = gl.getUniformLocation(program, "uLights[" + i + "].specular");
