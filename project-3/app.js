@@ -274,8 +274,6 @@ function setup(shaders) {
             // update latest angle
             angleX += dy;
             angleY += dx;
-            console.log(angleX);
-            console.log(angleY);
         }
         // update last mouse position
         lastX = point[0];
