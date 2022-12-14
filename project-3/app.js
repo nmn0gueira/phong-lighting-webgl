@@ -352,9 +352,8 @@ function setup(shaders) {
     }
 
     function drawObjects() {
-        // z = -20 to see the plane, use z = 0 to see up close
         multTranslation([0, -0.5, 0]);
-        // plane
+        // ground
         pushMatrix();
             multScale([10, 0.5, 10]);
 
@@ -403,7 +402,7 @@ function setup(shaders) {
         // bunny
         // y = 0.25 to move up a little
         multTranslation([2.5, 0.1, 2.5]);  // right front quandrant, 
-        multScale([20, 20, 20]);            // bunny with the same values ​​as the others gets too small
+        multScale([20, 20, 20]);
 
         uploadObject(bunnyMaterial);
         uploadMatrix("mModelView", modelView());
