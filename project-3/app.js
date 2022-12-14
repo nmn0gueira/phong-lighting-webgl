@@ -65,7 +65,7 @@ function setup(shaders) {
     });
 
     lights.push({   // Starts as directional light
-        position: [-20.0, 50.0, 50.0, 0.0],
+        position: [-20.0, 5.0, 5.0, 0.0],
         intensities: {
             ambient: [100.0, 75.0, 75.0],
             diffuse: [100.0, 75.0, 75.0],
