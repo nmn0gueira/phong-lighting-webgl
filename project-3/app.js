@@ -130,7 +130,7 @@ function setup(shaders) {
     let folderCamera = gui.addFolder("camera");
 
     folderCamera.add(camera, "fovy", 1, 100, 1);   
-    folderCamera.add(camera, "near", 0.1, 20, 0.1); 
+    folderCamera.add(camera, "near", 0.1, 40, 0.1); 
     folderCamera.add(camera, "far", 0.1, 40, 0.1);
 
 
