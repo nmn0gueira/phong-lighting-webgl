@@ -20,4 +20,4 @@ Apart from using the mouse change the position and orientation of the camera, yo
 - Change camera position and projection parameters.
 
 ## About
-This project was developed as part of the Computer Graphics and Interfaces (2022/2023) at FCT-UNL. The Bunny model and other primitive objects were sourced from the provided library.
+This project was developed as part of the Computer Graphics and Interfaces (2022/2023) course at FCT-UNL. The Bunny model and other primitive objects were sourced from the provided library.
